@@ -1,17 +1,5 @@
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAkLG-6Ze8TxKFt7gRnSbcxe1YY8tOhkpY",
-  authDomain: "drivers-5e2b3.firebaseapp.com",
-  projectId: "drivers-5e2b3",
-  storageBucket: "drivers-5e2b3.firebasestorage.app",
-  messagingSenderId: "343394512517",
-  appId: "1:343394512517:web:24039feda802ab3f8bc3ec",
-  measurementId: "G-XE0GXK81JK"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Import the Firestore instance from index.html
+import { db } from './index.html';
 
 document.getElementById('bookingForm').addEventListener('submit', async function(event) {
     event.preventDefault();
