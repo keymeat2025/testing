@@ -6,30 +6,30 @@
     <!-- Add Firebase JavaScript SDK -->
 
     <script type="module">
-          // Import the functions you need from the SDKs you need
-          import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-          import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
-          // TODO: Add SDKs for Firebase products that you want to use
-          // https://firebase.google.com/docs/web/setup#available-libraries
-        
-          // Your web app's Firebase configuration
-          // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-          const firebaseConfig = {
-            apiKey: "AIzaSyDzgx5BfdFr8_2QfGypRirHawqkZr1-JzY",
-            authDomain: "testing-9798d.firebaseapp.com",
-            databaseURL: "https://testing-9798d-default-rtdb.firebaseio.com",
-            projectId: "testing-9798d",
-            storageBucket: "testing-9798d.firebasestorage.app",
-            messagingSenderId: "1087239161684",
-            appId: "1:1087239161684:web:f07e7519b80f4896b6eac1",
-            measurementId: "G-FCPVSCGB91"
-          };
-        
-          // Initialize Firebase
-          const app = initializeApp(firebaseConfig);
-          const analytics = getAnalytics(app);
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyDzgx5BfdFr8_2QfGypRirHawqkZr1-JzY",
+          authDomain: "testing-9798d.firebaseapp.com",
+          databaseURL: "https://testing-9798d-default-rtdb.firebaseio.com",
+          projectId: "testing-9798d",
+          storageBucket: "testing-9798d.firebasestorage.app",
+          messagingSenderId: "1087239161684",
+          appId: "1:1087239161684:web:f07e7519b80f4896b6eac1",
+          measurementId: "G-FCPVSCGB91"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
     </script>
-    <script type="module" defer src="store-booking.js"></script>
+    <script type="module" src="store-booking.js"></script>
 </head>
 <body>
     <h1>Book a Driver</h1>
