@@ -4,25 +4,28 @@
     <meta charset="UTF-8">
     <title>Book Driver</title>
     <!-- Add Firebase JavaScript SDK -->
-   
-    <script  type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-    <script  type="module" src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+        
         // Initialize Firebase
-      
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-          apiKey: "AIzaSyAkLG-6Ze8TxKFt7gRnSbcxe1YY8tOhkpY",
-          authDomain: "drivers-5e2b3.firebaseapp.com",
-          projectId: "drivers-5e2b3",
-          storageBucket: "drivers-5e2b3.firebasestorage.app",
-          messagingSenderId: "343394512517",
-          appId: "1:343394512517:web:24039feda802ab3f8bc3ec",
-          measurementId: "G-XE0GXK81JK"
+            apiKey: "AIzaSyAkLG-6Ze8TxKFt7gRnSbcxe1YY8tOhkpY",
+            authDomain: "drivers-5e2b3.firebaseapp.com",
+            projectId: "drivers-5e2b3",
+            storageBucket: "drivers-5e2b3.firebasestorage.app",
+            messagingSenderId: "343394512517",
+            appId: "1:343394512517:web:24039feda802ab3f8bc3ec",
+            measurementId: "G-XE0GXK81JK"
         };
-        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Export db to use in store-booking.js
+        export { db };
     </script>
-<script  type="module" defer src="store-booking.js"></script>
+    <script type="module" defer src="store-booking.js"></script>
 </head>
 <body>
     <h1>Book a Driver</h1>
