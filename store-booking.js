@@ -1,4 +1,4 @@
-import { doc, setDoc } from "firebase/firestore"; 
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js"; 
 
 document.getElementById('bookingForm').addEventListener('submit', async function(event) {
     event.preventDefault();
@@ -11,7 +11,8 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     if (name && email) {
         try {
             console.log('Entering Firebase operation to add booking');
-            await db.collection("bookings").addDoc({
+            const newDoc = doc(window.db, "bookings", email); // Create a new document reference
+            await setDoc(newDoc, {
                 name: name,
                 email: email
             });
