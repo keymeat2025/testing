@@ -1,6 +1,3 @@
-// Import the Firestore instance from index.html
-import { db } from './index.html';
-    console.log('reached script file');
 document.getElementById('bookingForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -12,7 +9,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     if (name && email) {
         try {
             console.log('Entering Firebase operation to add booking');
-            await db.collection("bookings").add({
+            await window.db.collection("bookings").add({
                 name: name,
                 email: email
             });
