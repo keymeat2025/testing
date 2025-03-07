@@ -1,3 +1,5 @@
+import { doc, setDoc } from "firebase/firestore"; 
+
 document.getElementById('bookingForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
