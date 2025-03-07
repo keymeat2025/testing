@@ -9,7 +9,7 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     if (name && email) {
         try {
             console.log('Entering Firebase operation to add booking');
-            await window.db.collection("bookings").add({
+            await window.db.collection("bookings").addDoc({
                 name: name,
                 email: email
             });
