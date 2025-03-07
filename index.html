@@ -13,7 +13,7 @@
         // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAkLG-6Ze8TxKFt7gRnSbcxe1YY8tOhkpY",
-            authDomain: "keymeat2025.github.io",
+            authDomain: "drivers-5e2b3.firebaseapp.com",
             projectId: "drivers-5e2b3",
             storageBucket: "drivers-5e2b3.firebasestorage.app",
             messagingSenderId: "343394512517",
@@ -26,9 +26,9 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
         
-        // Export the Firestore instance for use in store-booking.js
-        export { db };
-        console.log('end of html file');
+        // Make db available globally for store-booking.js
+        window.db = db;
+        console.log('Firebase initialized and db set on window object');
     </script>
     <script type="module" defer src="./store-booking.js"></script>
 </head>
