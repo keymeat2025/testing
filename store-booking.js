@@ -1,6 +1,6 @@
 // Import the Firestore instance from index.html
 import { db } from './index.html';
-
+    console.log('reached script file');
 document.getElementById('bookingForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
