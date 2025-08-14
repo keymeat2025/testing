@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Drive Photo Gallery Creator</title>
     <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" onerror="gapiError()"></script>
+    
     <style>
         * {
             margin: 0;
@@ -1068,8 +1069,15 @@
         
                 async function initializeGoogleAPI() {
                     return new Promise((resolve, reject) => {
-                        // Double check that gapi is available
-                        if (typeof gapi === 'undefined') {
+                        // Double check that gapi is 
+                        // Wait for Google API to load
+                        console.log('⏳ Waiting for Google API...');
+                        await waitForGapi();
+                        console.log('✅ Google API ready');
+                        
+                        // Check if Google API is loaded
+                        if (!gapiReady || typeof gapi === 'undefined') {
+                        
                             reject(new Error('Google API script not loaded. Please reload the page.'));
                             return;
                         }
