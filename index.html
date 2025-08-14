@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Drive Photo Gallery Creator</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" onerror="gapiError()"></script>
     <style>
         * {
             margin: 0;
@@ -880,6 +880,27 @@
         let selectedFiles = [];
         let createdFolderId = '';
         let completedSteps = [];
+        let gapiReady = false;
+
+        function gapiLoaded() {
+            gapiReady = true;
+            console.log('Google API loaded successfully');
+        }
+        
+        function gapiError() {
+            console.error('Failed to load Google API');
+            showAlert('Failed to load Google API. Please check your internet connection.', 'error');
+        }
+        
+        function waitForGapi() {
+            return new Promise((resolve) => {
+                if (gapiReady && typeof gapi !== 'undefined') {
+                    resolve();
+                } else {
+                    setTimeout(() => waitForGapi().then(resolve), 100);
+                }
+            });
+        }
 
         // Initialize Google API when script loads
         function initGoogleAPI() {
@@ -898,11 +919,7 @@
             }
             
             // Check if Google API is available
-            setTimeout(() => {
-                if (typeof gapi === 'undefined') {
-                    showAlert('⚠️ Google API failed to load. Please check your internet connection and reload the page.', 'error');
-                }
-            }, 3000);
+         
         });
 
         function startSetup() {
@@ -984,9 +1001,13 @@
                     
                     const clientIdValue = clientIdInput.value.trim();
                     const apiKeyValue = apiKeyInput.value.trim();
+                    // Wait for Google API to load
+                    await waitForGapi();
                     
                     // Check if Google API is loaded
-                    if (typeof gapi === 'undefined') {
+                    if (!gapiReady || typeof gapi === 'undefined') {
+                    // Check if Google API is loaded
+                 
                         if (resultDiv) {
                             resultDiv.innerHTML = `
                                 <div class="validation-status error">
