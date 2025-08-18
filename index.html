@@ -168,6 +168,48 @@
         font-size: 16px;
         font-weight: bold;
       }
+      
+      /* Watermark styles */
+      .watermarked {
+        position: relative;
+      }
+      
+      .watermarked::after {
+        content: 'snapselect';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        z-index: 10;
+        letter-spacing: 3px;
+        text-transform: lowercase;
+      }
+      
+      .watermarked img {
+        filter: brightness(0.8);
+      }
+      
+      /* Modal watermark */
+      .modal-watermarked::after {
+        content: 'snapselect';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 42px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.7);
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        z-index: 1002;
+        letter-spacing: 8px;
+        text-transform: lowercase;
+      }
       .image-name {
         margin-top: 10px;
         font-weight: bold;
@@ -213,6 +255,7 @@
       <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
       <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
       <button id="load_folders_button" onclick="loadFolders()" disabled>Browse Folders</button>
+      <button id="watermark_toggle" onclick="toggleWatermark()" disabled>🏷️ Watermark: OFF</button>
     </div>
 
     <div id="navigation" class="navigation" style="display: none;">
@@ -252,6 +295,7 @@
       let currentView = 'folders'; // 'folders' or 'images'
       let currentImages = []; // Store current folder's images for gallery
       let currentImageIndex = 0; // Current image in gallery
+      let watermarkEnabled = false; // Watermark toggle state
 
       const IMAGE_MIME_TYPES = [
         'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
@@ -297,6 +341,7 @@
           }
           document.getElementById('signout_button').style.visibility = 'visible';
           document.getElementById('load_folders_button').disabled = false;
+          document.getElementById('watermark_toggle').disabled = false;
           document.getElementById('authorize_button').innerText = 'Refresh';
           document.getElementById('navigation').style.display = 'block';
         };
@@ -318,6 +363,7 @@
           document.getElementById('authorize_button').innerText = 'Authorize';
           document.getElementById('signout_button').style.visibility = 'hidden';
           document.getElementById('load_folders_button').disabled = true;
+          document.getElementById('watermark_toggle').disabled = true;
           resetNavigation();
         }
       }
@@ -476,6 +522,11 @@
         images.forEach((image, index) => {
           const imageDiv = document.createElement('div');
           imageDiv.className = 'image-item';
+          
+          // Add watermark class if enabled
+          if (watermarkEnabled) {
+            imageDiv.classList.add('watermarked');
+          }
 
           const imgElement = document.createElement('img');
           
@@ -550,6 +601,14 @@
         const modalImage = document.getElementById('modalImage');
         const imageCounter = document.getElementById('imageCounter');
         const imageTitle = document.getElementById('imageTitle');
+        const modalContent = document.querySelector('.modal-content');
+        
+        // Add/remove watermark class for modal
+        if (watermarkEnabled) {
+          modalContent.classList.add('modal-watermarked');
+        } else {
+          modalContent.classList.remove('modal-watermarked');
+        }
         
         // Use higher resolution image for modal
         if (image.thumbnailLink) {
@@ -589,6 +648,25 @@
         const modal = document.getElementById('imageModal');
         if (event.target === modal) {
           closeModal();
+        }
+      }
+
+      // Watermark toggle function
+      function toggleWatermark() {
+        watermarkEnabled = !watermarkEnabled;
+        const button = document.getElementById('watermark_toggle');
+        
+        if (watermarkEnabled) {
+          button.textContent = '🏷️ Watermark: ON';
+          button.style.backgroundColor = '#34a853';
+        } else {
+          button.textContent = '🏷️ Watermark: OFF';
+          button.style.backgroundColor = '#4285f4';
+        }
+        
+        // Refresh current view to apply watermark changes
+        if (currentView === 'images' && currentImages.length > 0) {
+          displayImages(currentImages);
         }
       }
     </script>
