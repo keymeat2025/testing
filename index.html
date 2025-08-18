@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Google Drive Image Browser</title>
+    <title>Google Drive Folder & Image Browser</title>
     <meta charset="utf-8" />
     <style>
       body {
@@ -10,37 +10,76 @@
         margin: 0 auto;
         padding: 20px;
       }
-      .image-grid {
+      .navigation {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+      }
+      .breadcrumb {
+        color: #666;
+        margin-bottom: 10px;
+      }
+      .back-button {
+        background-color: #666;
+        margin-right: 10px;
+      }
+      .folder-grid, .image-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
         margin-top: 20px;
+      }
+      .folder-item {
+        border: 2px solid #4285f4;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #f8f9ff;
+      }
+      .folder-item:hover {
+        background-color: #e8f0fe;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      .folder-icon {
+        font-size: 48px;
+        margin-bottom: 10px;
+      }
+      .folder-name {
+        font-weight: bold;
+        word-break: break-word;
+        margin-bottom: 5px;
+      }
+      .folder-count {
+        color: #666;
+        font-size: 12px;
       }
       .image-item {
         border: 1px solid #ddd;
         border-radius: 8px;
         padding: 10px;
         text-align: center;
+        background-color: white;
       }
       .image-item img {
         max-width: 100%;
         max-height: 200px;
         object-fit: cover;
         border-radius: 4px;
+        cursor: pointer;
       }
       .image-name {
         margin-top: 10px;
         font-weight: bold;
         word-break: break-word;
-      }
-      .folder-path {
-        color: #666;
-        font-size: 12px;
-        margin-top: 5px;
+        font-size: 14px;
       }
       button {
         padding: 10px 20px;
-        margin: 10px;
+        margin: 5px;
         border: none;
         border-radius: 4px;
         background-color: #4285f4;
@@ -59,61 +98,60 @@
         margin: 20px;
         color: #666;
       }
+      .empty-state {
+        text-align: center;
+        margin: 40px;
+        color: #666;
+      }
+      .view-toggle {
+        margin: 20px 0;
+      }
     </style>
   </head>
   <body>
-    <h1>Google Drive Image Browser</h1>
-    <p>Browse and view image files from your Google Drive folders</p>
+    <h1>Google Drive Folder & Image Browser</h1>
+    <p>Browse folders first, then view images inside them</p>
 
-    <!--Add buttons to initiate auth sequence and sign out-->
-    <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
-    <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
-    <button id="load_images_button" onclick="loadAllImages()" disabled>Load Images</button>
+    <div class="view-toggle">
+      <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
+      <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
+      <button id="load_folders_button" onclick="loadFolders()" disabled>Browse Folders</button>
+    </div>
 
-    <div id="loading" class="loading" style="display: none;">Loading images...</div>
-    <div id="image-container" class="image-grid"></div>
+    <div id="navigation" class="navigation" style="display: none;">
+      <div id="breadcrumb" class="breadcrumb"></div>
+      <button id="back_button" class="back-button" onclick="goBack()" style="display: none;">← Back</button>
+      <button onclick="loadFolders()">📁 Show Folders</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">Loading...</div>
+    <div id="content-container"></div>
 
     <script type="text/javascript">
-      // TODO(developer): Set to client ID and API key from the Developer Console
       const CLIENT_ID = '790992026707-a2ah00pav4gjq6u7m3au3amn9ij12hes.apps.googleusercontent.com';
       const API_KEY = 'AIzaSyB0FkpFoTRWOXc8b6_gCzEKCoWMDcuA7NQ';
-
-      // Discovery doc URL for APIs used by the quickstart
       const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-
-      // Authorization scopes - need readonly access for files
       const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
       let tokenClient;
       let gapiInited = false;
       let gisInited = false;
+      let currentFolderId = 'root';
+      let folderHistory = [];
+      let currentView = 'folders'; // 'folders' or 'images'
 
-      // Image MIME types to filter for
       const IMAGE_MIME_TYPES = [
-        'image/jpeg',
-        'image/jpg', 
-        'image/png',
-        'image/gif',
-        'image/webp',
-        'image/bmp',
-        'image/svg+xml',
-        'image/tiff'
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+        'image/webp', 'image/bmp', 'image/svg+xml', 'image/tiff'
       ];
 
       document.getElementById('authorize_button').style.visibility = 'hidden';
       document.getElementById('signout_button').style.visibility = 'hidden';
 
-      /**
-       * Callback after api.js is loaded.
-       */
       function gapiLoaded() {
         gapi.load('client', initializeGapiClient);
       }
 
-      /**
-       * Callback after the API client is loaded. Loads the
-       * discovery doc to initialize the API.
-       */
       async function initializeGapiClient() {
         await gapi.client.init({
           apiKey: API_KEY,
@@ -123,39 +161,31 @@
         maybeEnableButtons();
       }
 
-      /**
-       * Callback after Google Identity Services are loaded.
-       */
       function gisLoaded() {
         tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES,
-          callback: '', // defined later
+          callback: '',
         });
         gisInited = true;
         maybeEnableButtons();
       }
 
-      /**
-       * Enables user interaction after all libraries are loaded.
-       */
       function maybeEnableButtons() {
         if (gapiInited && gisInited) {
           document.getElementById('authorize_button').style.visibility = 'visible';
         }
       }
 
-      /**
-       *  Sign in the user upon button click.
-       */
       function handleAuthClick() {
         tokenClient.callback = async (resp) => {
           if (resp.error !== undefined) {
             throw (resp);
           }
           document.getElementById('signout_button').style.visibility = 'visible';
-          document.getElementById('load_images_button').disabled = false;
+          document.getElementById('load_folders_button').disabled = false;
           document.getElementById('authorize_button').innerText = 'Refresh';
+          document.getElementById('navigation').style.display = 'block';
         };
 
         if (gapi.client.getToken() === null) {
@@ -165,66 +195,151 @@
         }
       }
 
-      /**
-       *  Sign out the user upon button click.
-       */
       function handleSignoutClick() {
         const token = gapi.client.getToken();
         if (token !== null) {
           google.accounts.oauth2.revoke(token.access_token);
           gapi.client.setToken('');
-          document.getElementById('image-container').innerHTML = '';
+          document.getElementById('content-container').innerHTML = '';
+          document.getElementById('navigation').style.display = 'none';
           document.getElementById('authorize_button').innerText = 'Authorize';
           document.getElementById('signout_button').style.visibility = 'hidden';
-          document.getElementById('load_images_button').disabled = true;
+          document.getElementById('load_folders_button').disabled = true;
+          resetNavigation();
         }
       }
 
-      /**
-       * Get folder name by folder ID
-       */
-      async function getFolderName(folderId) {
-        try {
-          const response = await gapi.client.drive.files.get({
-            fileId: folderId,
-            fields: 'name'
-          });
-          return response.result.name;
-        } catch (err) {
-          return 'Unknown Folder';
-        }
+      function resetNavigation() {
+        currentFolderId = 'root';
+        folderHistory = [];
+        currentView = 'folders';
+        updateBreadcrumb();
       }
 
-      /**
-       * Load all image files from Google Drive
-       */
-      async function loadAllImages() {
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('image-container').innerHTML = '';
+      function updateBreadcrumb() {
+        const breadcrumb = document.getElementById('breadcrumb');
+        const backButton = document.getElementById('back_button');
         
-        let allImages = [];
-        let nextPageToken = null;
+        if (currentFolderId === 'root') {
+          breadcrumb.textContent = `📁 Root Folder - Viewing: ${currentView}`;
+          backButton.style.display = 'none';
+        } else {
+          breadcrumb.textContent = `📁 Current Folder - Viewing: ${currentView}`;
+          backButton.style.display = 'inline-block';
+        }
+      }
+
+      function goBack() {
+        if (folderHistory.length > 0) {
+          currentFolderId = folderHistory.pop();
+          if (currentView === 'images') {
+            loadImagesInFolder(currentFolderId);
+          } else {
+            loadFolders(currentFolderId);
+          }
+        }
+      }
+
+      async function loadFolders(folderId = 'root') {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('content-container').innerHTML = '';
+        currentView = 'folders';
+        currentFolderId = folderId;
+        updateBreadcrumb();
 
         try {
-          do {
-            // Create query to find only image files
-            const mimeTypeQuery = IMAGE_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ');
-            
-            const response = await gapi.client.drive.files.list({
-              pageSize: 100,
-              fields: 'nextPageToken, files(id, name, mimeType, parents, thumbnailLink, webViewLink)',
-              q: `(${mimeTypeQuery}) and trashed=false`,
-              pageToken: nextPageToken
-            });
+          const response = await gapi.client.drive.files.list({
+            q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+            pageSize: 100,
+            fields: 'files(id, name)',
+            orderBy: 'name'
+          });
 
-            if (response.result.files && response.result.files.length > 0) {
-              allImages = allImages.concat(response.result.files);
-            }
+          const folders = response.result.files || [];
+          await displayFolders(folders);
 
-            nextPageToken = response.result.nextPageToken;
-          } while (nextPageToken);
+        } catch (err) {
+          console.error('Error loading folders:', err);
+          document.getElementById('loading').textContent = 'Error loading folders: ' + err.message;
+        }
+      }
 
-          await displayImages(allImages);
+      async function displayFolders(folders) {
+        const container = document.getElementById('content-container');
+        document.getElementById('loading').style.display = 'none';
+
+        if (folders.length === 0) {
+          container.innerHTML = '<div class="empty-state">No folders found in this location.</div>';
+          return;
+        }
+
+        const folderGrid = document.createElement('div');
+        folderGrid.className = 'folder-grid';
+
+        for (const folder of folders) {
+          // Count images in this folder
+          const imageCount = await countImagesInFolder(folder.id);
+          
+          const folderDiv = document.createElement('div');
+          folderDiv.className = 'folder-item';
+          folderDiv.onclick = () => openFolder(folder.id, folder.name);
+
+          folderDiv.innerHTML = `
+            <div class="folder-icon">📁</div>
+            <div class="folder-name">${folder.name}</div>
+            <div class="folder-count">${imageCount} images</div>
+          `;
+
+          folderGrid.appendChild(folderDiv);
+        }
+
+        const summary = document.createElement('p');
+        summary.textContent = `Found ${folders.length} folders`;
+        summary.style.textAlign = 'center';
+        summary.style.color = '#666';
+
+        container.appendChild(summary);
+        container.appendChild(folderGrid);
+      }
+
+      async function countImagesInFolder(folderId) {
+        try {
+          const mimeTypeQuery = IMAGE_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ');
+          const response = await gapi.client.drive.files.list({
+            q: `'${folderId}' in parents and (${mimeTypeQuery}) and trashed=false`,
+            pageSize: 1000,
+            fields: 'files(id)'
+          });
+          return response.result.files ? response.result.files.length : 0;
+        } catch (err) {
+          return 0;
+        }
+      }
+
+      function openFolder(folderId, folderName) {
+        folderHistory.push(currentFolderId);
+        loadImagesInFolder(folderId);
+      }
+
+      async function loadImagesInFolder(folderId) {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('content-container').innerHTML = '';
+        currentView = 'images';
+        currentFolderId = folderId;
+        updateBreadcrumb();
+
+        try {
+          const mimeTypeQuery = IMAGE_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ');
+          
+          const response = await gapi.client.drive.files.list({
+            q: `'${folderId}' in parents and (${mimeTypeQuery}) and trashed=false`,
+            pageSize: 100,
+            fields: 'files(id, name, mimeType, thumbnailLink, webViewLink)',
+            orderBy: 'name'
+          });
+
+          const images = response.result.files || [];
+          displayImages(images);
 
         } catch (err) {
           console.error('Error loading images:', err);
@@ -232,54 +347,35 @@
         }
       }
 
-      /**
-       * Display images in the grid
-       */
-      async function displayImages(images) {
-        const container = document.getElementById('image-container');
+      function displayImages(images) {
+        const container = document.getElementById('content-container');
         document.getElementById('loading').style.display = 'none';
 
-        if (!images || images.length === 0) {
-          container.innerHTML = '<p>No image files found in your Google Drive.</p>';
+        if (images.length === 0) {
+          container.innerHTML = '<div class="empty-state">No images found in this folder.</div>';
           return;
         }
 
-        // Get folder names for images that have parents
-        const folderCache = {};
-        
-        for (const image of images) {
+        const imageGrid = document.createElement('div');
+        imageGrid.className = 'image-grid';
+
+        images.forEach(image => {
           const imageDiv = document.createElement('div');
           imageDiv.className = 'image-item';
 
-          // Get folder path
-          let folderPath = 'Root';
-          if (image.parents && image.parents.length > 0) {
-            const folderId = image.parents[0];
-            if (!folderCache[folderId]) {
-              folderCache[folderId] = await getFolderName(folderId);
-            }
-            folderPath = folderCache[folderId];
-          }
-
-          // Create image element
           const imgElement = document.createElement('img');
           
-          // Use thumbnail if available, otherwise try to construct a thumbnail URL
           if (image.thumbnailLink) {
             imgElement.src = image.thumbnailLink;
           } else {
-            // Fallback: construct thumbnail URL
             imgElement.src = `https://drive.google.com/thumbnail?id=${image.id}&sz=w300`;
           }
           
           imgElement.alt = image.name;
           imgElement.onerror = function() {
-            // If thumbnail fails, show a placeholder
             this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
           };
 
-          // Make image clickable to open in Google Drive
-          imgElement.style.cursor = 'pointer';
           imgElement.onclick = function() {
             window.open(image.webViewLink, '_blank');
           };
@@ -288,24 +384,18 @@
           nameDiv.className = 'image-name';
           nameDiv.textContent = image.name;
 
-          const folderDiv = document.createElement('div');
-          folderDiv.className = 'folder-path';
-          folderDiv.textContent = `Folder: ${folderPath}`;
-
           imageDiv.appendChild(imgElement);
           imageDiv.appendChild(nameDiv);
-          imageDiv.appendChild(folderDiv);
+          imageGrid.appendChild(imageDiv);
+        });
 
-          container.appendChild(imageDiv);
-        }
-
-        // Add summary
         const summary = document.createElement('p');
-        summary.textContent = `Found ${images.length} image files`;
+        summary.textContent = `Found ${images.length} images in this folder`;
         summary.style.textAlign = 'center';
-        summary.style.marginTop = '20px';
         summary.style.color = '#666';
-        container.insertBefore(summary, container.firstChild);
+
+        container.appendChild(summary);
+        container.appendChild(imageGrid);
       }
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
