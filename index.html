@@ -174,13 +174,14 @@
         position: relative;
       }
       
+      /* Main center watermark */
       .watermarked::after {
         content: 'snapselect';
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) rotate(-45deg);
-        font-size: 20px;
+        font-size: 18px;
         font-weight: bold;
         color: rgba(255, 255, 255, 0.8);
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
@@ -190,24 +191,127 @@
         text-transform: lowercase;
       }
       
+      /* Top-left watermark */
+      .watermarked::before {
+        content: 'snapselect';
+        position: absolute;
+        top: 15%;
+        left: 15%;
+        transform: rotate(-30deg);
+        font-size: 12px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.6);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        z-index: 11;
+        letter-spacing: 2px;
+        text-transform: lowercase;
+      }
+      
       .watermarked img {
         filter: brightness(0.8);
       }
       
-      /* Modal watermark */
+      /* Additional watermarks using pseudo-elements on container */
+      .watermarked {
+        overflow: hidden;
+      }
+      
+      /* Bottom-right watermark */
+      .watermarked .watermark-br {
+        content: 'snapselect';
+        position: absolute;
+        bottom: 15%;
+        right: 15%;
+        transform: rotate(30deg);
+        font-size: 12px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.6);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        z-index: 11;
+        letter-spacing: 2px;
+        text-transform: lowercase;
+      }
+      
+      /* Top-right watermark */
+      .watermarked .watermark-tr {
+        content: 'snapselect';
+        position: absolute;
+        top: 15%;
+        right: 15%;
+        transform: rotate(-60deg);
+        font-size: 12px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.6);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        z-index: 11;
+        letter-spacing: 2px;
+        text-transform: lowercase;
+      }
+      
+      /* Modal watermarks - multiple positions */
       .modal-watermarked::after {
         content: 'snapselect';
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) rotate(-45deg);
-        font-size: 42px;
+        font-size: 36px;
         font-weight: bold;
         color: rgba(255, 255, 255, 0.7);
         text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
         pointer-events: none;
         z-index: 1002;
-        letter-spacing: 8px;
+        letter-spacing: 6px;
+        text-transform: lowercase;
+      }
+      
+      .modal-watermarked::before {
+        content: 'snapselect';
+        position: absolute;
+        top: 20%;
+        left: 20%;
+        transform: rotate(-30deg);
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.5);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        z-index: 1003;
+        letter-spacing: 4px;
+        text-transform: lowercase;
+      }
+      
+      /* Additional modal watermarks */
+      .modal-watermarked .modal-watermark-br {
+        position: absolute;
+        bottom: 20%;
+        right: 20%;
+        transform: rotate(30deg);
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.5);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        z-index: 1003;
+        letter-spacing: 4px;
+        text-transform: lowercase;
+      }
+      
+      .modal-watermarked .modal-watermark-tr {
+        position: absolute;
+        top: 20%;
+        right: 20%;
+        transform: rotate(-60deg);
+        font-size: 20px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.5);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        z-index: 1003;
+        letter-spacing: 4px;
         text-transform: lowercase;
       }
       .image-name {
@@ -526,6 +630,17 @@
           // Add watermark class if enabled
           if (watermarkEnabled) {
             imageDiv.classList.add('watermarked');
+            
+            // Add additional watermark elements
+            const watermarkBR = document.createElement('div');
+            watermarkBR.className = 'watermark-br';
+            watermarkBR.textContent = 'snapselect';
+            imageDiv.appendChild(watermarkBR);
+            
+            const watermarkTR = document.createElement('div');
+            watermarkTR.className = 'watermark-tr';
+            watermarkTR.textContent = 'snapselect';
+            imageDiv.appendChild(watermarkTR);
           }
 
           const imgElement = document.createElement('img');
@@ -606,8 +721,24 @@
         // Add/remove watermark class for modal
         if (watermarkEnabled) {
           modalContent.classList.add('modal-watermarked');
+          
+          // Add additional modal watermark elements if they don't exist
+          if (!modalContent.querySelector('.modal-watermark-br')) {
+            const watermarkBR = document.createElement('div');
+            watermarkBR.className = 'modal-watermark-br';
+            watermarkBR.textContent = 'snapselect';
+            modalContent.appendChild(watermarkBR);
+            
+            const watermarkTR = document.createElement('div');
+            watermarkTR.className = 'modal-watermark-tr';
+            watermarkTR.textContent = 'snapselect';
+            modalContent.appendChild(watermarkTR);
+          }
         } else {
           modalContent.classList.remove('modal-watermarked');
+          // Remove additional watermark elements
+          const existingWatermarks = modalContent.querySelectorAll('.modal-watermark-br, .modal-watermark-tr');
+          existingWatermarks.forEach(el => el.remove());
         }
         
         // Use higher resolution image for modal
