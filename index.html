@@ -1,4 +1,28 @@
-<!DOCTYPE html>
+// Watermark toggle function
+      function toggleWatermark() {
+        watermarkEnabled = !watermarkEnabled;
+        const button = document.getElementById('watermark_toggle');
+        
+        if (watermarkEnabled) {
+          button.textContent = '🏷️ Watermark: ON';
+          button.style.backgroundColor = '#34a853';
+        } else {
+          button.textContent = '🏷️ Watermark: OFF';
+          button.style.backgroundColor = '#4285f4';
+        }
+        
+        // Update existing images without re-rendering - just toggle watermark classes
+        if (currentView === 'images') {
+          const imageItems = document.querySelectorAll('.image-item');
+          
+          imageItems.forEach((imageDiv, index) => {
+            if (watermarkEnabled) {
+              // Add watermark classes
+              imageDiv.classList.add('watermarked');
+              
+              // Add random positioning and opacity for variety
+              const randomPos = Math.floor(Math.random() * 6) + 1;
+              const randomOpacity = Math.floor(Math.random() *<!DOCTYPE html>
 <html>
   <head>
     <title>Google Drive Folder & Image Browser</title>
@@ -684,13 +708,40 @@
           button.style.backgroundColor = '#4285f4';
         }
         
-        // Important: This only affects the DISPLAY/VIEW of images in the webpage
-        // It does NOT modify, upload, or change the actual files in Google Drive
-        // The watermark is purely a CSS overlay for web viewing protection
-        
-        // Refresh current view to apply watermark changes
-        if (currentView === 'images' && currentImages.length > 0) {
-          displayImages(currentImages);
+        // Update existing images without re-rendering - just toggle watermark classes
+        if (currentView === 'images') {
+          const imageItems = document.querySelectorAll('.image-item');
+          
+          imageItems.forEach((imageDiv, index) => {
+            if (watermarkEnabled) {
+              // Add watermark classes
+              imageDiv.classList.add('watermarked');
+              
+              // Remove any existing position/opacity classes first
+              imageDiv.classList.remove('pos-1', 'pos-2', 'pos-3', 'pos-4', 'pos-5', 'pos-6');
+              imageDiv.classList.remove('opacity-1', 'opacity-2', 'opacity-3', 'opacity-4');
+              
+              // Add random positioning and opacity for variety
+              const randomPos = Math.floor(Math.random() * 6) + 1;
+              const randomOpacity = Math.floor(Math.random() * 4) + 1;
+              imageDiv.classList.add(`pos-${randomPos}`, `opacity-${randomOpacity}`);
+            } else {
+              // Remove watermark classes
+              imageDiv.classList.remove('watermarked');
+              imageDiv.classList.remove('pos-1', 'pos-2', 'pos-3', 'pos-4', 'pos-5', 'pos-6');
+              imageDiv.classList.remove('opacity-1', 'opacity-2', 'opacity-3', 'opacity-4');
+            }
+          });
+          
+          // Also update modal if it's open
+          const modalContent = document.querySelector('.modal-content');
+          if (modalContent) {
+            if (watermarkEnabled) {
+              modalContent.classList.add('modal-watermarked');
+            } else {
+              modalContent.classList.remove('modal-watermarked');
+            }
+          }
         }
       }
     </script>
