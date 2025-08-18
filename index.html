@@ -1,28 +1,3 @@
-// Watermark toggle function
-      function toggleWatermark() {
-        watermarkEnabled = !watermarkEnabled;
-        const button = document.getElementById('watermark_toggle');
-        
-        if (watermarkEnabled) {
-          button.textContent = '🏷️ Watermark: ON';
-          button.style.backgroundColor = '#34a853';
-        } else {
-          button.textContent = '🏷️ Watermark: OFF';
-          button.style.backgroundColor = '#4285f4';
-        }
-        
-        // Update existing images without re-rendering - just toggle watermark classes
-        if (currentView === 'images') {
-          const imageItems = document.querySelectorAll('.image-item');
-          
-          imageItems.forEach((imageDiv, index) => {
-            if (watermarkEnabled) {
-              // Add watermark classes
-              imageDiv.classList.add('watermarked');
-              
-              // Add random positioning and opacity for variety
-              const randomPos = Math.floor(Math.random() * 6) + 1;
-              const randomOpacity = Math.floor(Math.random() *<!DOCTYPE html>
 <html>
   <head>
     <title>Google Drive Folder & Image Browser</title>
