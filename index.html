@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Google Drive Folder & Image Browser</title>
@@ -223,6 +224,168 @@
       .watermarked.opacity-2::after { opacity: 0.3; }
       .watermarked.opacity-3::after { opacity: 0.25; }
       .watermarked.opacity-4::after { opacity: 0.35; }
+      
+      /* Slideshow styles */
+      .slideshow-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .slideshow-image {
+        max-width: 90%;
+        max-height: 85%;
+        object-fit: contain;
+        transition: opacity 0.3s ease;
+      }
+      
+      .slideshow-controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.8);
+        padding: 8px 15px;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .play-pause-btn {
+        width: 35px;
+        height: 35px;
+        border: none;
+        border-radius: 50%;
+        background: #4285f4;
+        color: white;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+      
+      .slideshow-info {
+        color: white;
+        font-size: 14px;
+        margin: 0 10px;
+        min-width: 80px;
+        text-align: center;
+      }
+      
+      .slideshow-close {
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 50%;
+        background: #666;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* Zoom modal styles */
+      .zoom-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .zoom-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      
+      .zoom-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.2s ease;
+        cursor: grab;
+      }
+      
+      .zoom-controls {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(32, 33, 36, 0.9);
+        padding: 8px 20px;
+        border-radius: 24px 24px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      .zoom-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+      }
+      
+      .zoom-btn:hover {
+        background: rgba(255,255,255,0.2);
+      }
+      
+      .zoom-indicator {
+        color: white;
+        font-size: 14px;
+        min-width: 60px;
+        text-align: center;
+        font-family: 'Google Sans', Arial, sans-serif;
+      }
+      
+      .zoom-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(32, 33, 36, 0.8);
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+      }
       .image-name {
         margin-top: 10px;
         font-weight: bold;
@@ -269,6 +432,7 @@
       <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
       <button id="load_folders_button" onclick="loadFolders()" disabled>Browse Folders</button>
       <button id="watermark_toggle" onclick="toggleWatermark()" disabled>🏷️ Watermark: OFF</button>
+      <button id="slideshow_button" onclick="startSlideshow()" disabled>🎬 Slideshow</button>
     </div>
 
     <div id="navigation" class="navigation" style="display: none;">
@@ -294,6 +458,29 @@
       </div>
     </div>
 
+    <!-- Slideshow Modal -->
+    <div id="slideshowModal" class="slideshow-modal">
+      <img id="slideshowImage" class="slideshow-image" src="" alt="">
+      <div class="slideshow-controls">
+        <button id="playPauseBtn" class="play-pause-btn" onclick="toggleSlideshow()" title="Start slideshow">▶️</button>
+        <div id="slideshowInfo" class="slideshow-info"></div>
+        <button class="slideshow-close" onclick="closeSlideshow()" title="Close slideshow">✕</button>
+      </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="zoomModal" class="zoom-modal">
+      <div id="zoomContainer" class="zoom-container">
+        <img id="zoomImage" class="zoom-image" src="" alt="">
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">−</button>
+          <div id="zoomIndicator" class="zoom-indicator">100%</div>
+          <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
+        </div>
+        <button class="zoom-close" onclick="closeZoom()" title="Close">✕</button>
+      </div>
+    </div>
+
     <script type="text/javascript">
       const CLIENT_ID = '790992026707-a2ah00pav4gjq6u7m3au3amn9ij12hes.apps.googleusercontent.com';
       const API_KEY = 'AIzaSyB0FkpFoTRWOXc8b6_gCzEKCoWMDcuA7NQ';
@@ -309,6 +496,18 @@
       let currentImages = []; // Store current folder's images for gallery
       let currentImageIndex = 0; // Current image in gallery
       let watermarkEnabled = false; // Watermark toggle state
+      
+      // Slideshow variables
+      let slideshowInterval;
+      let isPlaying = false;
+      let slideshowIndex = 0;
+      
+      // Zoom variables
+      let zoomScale = 1;
+      let zoomTranslateX = 0;
+      let zoomTranslateY = 0;
+      let isDragging = false;
+      let startX, startY;
 
       const IMAGE_MIME_TYPES = [
         'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
@@ -355,6 +554,7 @@
           document.getElementById('signout_button').style.visibility = 'visible';
           document.getElementById('load_folders_button').disabled = false;
           document.getElementById('watermark_toggle').disabled = false;
+          document.getElementById('slideshow_button').disabled = false;
           document.getElementById('authorize_button').innerText = 'Refresh';
           document.getElementById('navigation').style.display = 'block';
         };
@@ -377,6 +577,7 @@
           document.getElementById('signout_button').style.visibility = 'hidden';
           document.getElementById('load_folders_button').disabled = true;
           document.getElementById('watermark_toggle').disabled = true;
+          document.getElementById('slideshow_button').disabled = true;
           resetNavigation();
         }
       }
@@ -564,6 +765,12 @@
           imgElement.onclick = function() {
             openImageGallery(index);
           };
+
+          // Add double-click for zoom
+          imgElement.addEventListener('dblclick', function(e) {
+            e.stopPropagation();
+            openZoom(index);
+          });
 
           const nameDiv = document.createElement('div');
           nameDiv.className = 'image-name';
