@@ -71,6 +71,103 @@
         border-radius: 4px;
         cursor: pointer;
       }
+      
+      /* Modal styles for image gallery */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.9);
+      }
+      
+      .modal-content {
+        position: relative;
+        margin: auto;
+        padding: 0;
+        width: 90%;
+        max-width: 1200px;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .modal-image {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+      }
+      
+      .close {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001;
+      }
+      
+      .close:hover {
+        color: #bbb;
+      }
+      
+      .prev, .next {
+        position: absolute;
+        top: 50%;
+        width: auto;
+        padding: 16px;
+        margin-top: -50px;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        background-color: rgba(0,0,0,0.5);
+        border: none;
+        cursor: pointer;
+        user-select: none;
+        z-index: 1001;
+      }
+      
+      .next {
+        right: 0;
+        border-radius: 3px 0 0 3px;
+      }
+      
+      .prev {
+        left: 0;
+        border-radius: 0 3px 3px 0;
+      }
+      
+      .prev:hover, .next:hover {
+        background-color: rgba(0,0,0,0.8);
+      }
+      
+      .modal-info {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        text-align: center;
+        background-color: rgba(0,0,0,0.7);
+        padding: 10px 20px;
+        border-radius: 5px;
+      }
+      
+      .image-counter {
+        font-size: 14px;
+        margin-bottom: 5px;
+      }
+      
+      .image-title {
+        font-size: 16px;
+        font-weight: bold;
+      }
       .image-name {
         margin-top: 10px;
         font-weight: bold;
@@ -127,6 +224,20 @@
     <div id="loading" class="loading" style="display: none;">Loading...</div>
     <div id="content-container"></div>
 
+    <!-- Image Modal/Gallery -->
+    <div id="imageModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <button class="prev" onclick="changeImage(-1)">&#10094;</button>
+        <img id="modalImage" class="modal-image" src="" alt="">
+        <button class="next" onclick="changeImage(1)">&#10095;</button>
+        <div class="modal-info">
+          <div id="imageCounter" class="image-counter"></div>
+          <div id="imageTitle" class="image-title"></div>
+        </div>
+      </div>
+    </div>
+
     <script type="text/javascript">
       const CLIENT_ID = '790992026707-a2ah00pav4gjq6u7m3au3amn9ij12hes.apps.googleusercontent.com';
       const API_KEY = 'AIzaSyB0FkpFoTRWOXc8b6_gCzEKCoWMDcuA7NQ';
@@ -139,6 +250,8 @@
       let currentFolderId = 'root';
       let folderHistory = [];
       let currentView = 'folders'; // 'folders' or 'images'
+      let currentImages = []; // Store current folder's images for gallery
+      let currentImageIndex = 0; // Current image in gallery
 
       const IMAGE_MIME_TYPES = [
         'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
@@ -339,6 +452,7 @@
           });
 
           const images = response.result.files || [];
+          currentImages = images; // Store for gallery navigation
           displayImages(images);
 
         } catch (err) {
@@ -359,7 +473,7 @@
         const imageGrid = document.createElement('div');
         imageGrid.className = 'image-grid';
 
-        images.forEach(image => {
+        images.forEach((image, index) => {
           const imageDiv = document.createElement('div');
           imageDiv.className = 'image-item';
 
@@ -376,8 +490,9 @@
             this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
           };
 
+          // Open gallery instead of Google Drive
           imgElement.onclick = function() {
-            window.open(image.webViewLink, '_blank');
+            openImageGallery(index);
           };
 
           const nameDiv = document.createElement('div');
@@ -396,6 +511,85 @@
 
         container.appendChild(summary);
         container.appendChild(imageGrid);
+      }
+
+      // Gallery functions
+      function openImageGallery(index) {
+        currentImageIndex = index;
+        const modal = document.getElementById('imageModal');
+        updateModalImage();
+        modal.style.display = 'block';
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', handleKeyNavigation);
+      }
+
+      function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.style.display = 'none';
+        document.removeEventListener('keydown', handleKeyNavigation);
+      }
+
+      function changeImage(direction) {
+        currentImageIndex += direction;
+        
+        // Wrap around
+        if (currentImageIndex >= currentImages.length) {
+          currentImageIndex = 0;
+        } else if (currentImageIndex < 0) {
+          currentImageIndex = currentImages.length - 1;
+        }
+        
+        updateModalImage();
+      }
+
+      function updateModalImage() {
+        if (currentImages.length === 0) return;
+        
+        const image = currentImages[currentImageIndex];
+        const modalImage = document.getElementById('modalImage');
+        const imageCounter = document.getElementById('imageCounter');
+        const imageTitle = document.getElementById('imageTitle');
+        
+        // Use higher resolution image for modal
+        if (image.thumbnailLink) {
+          // Try to get a larger thumbnail
+          modalImage.src = image.thumbnailLink.replace(/=s\d+/, '=s800');
+        } else {
+          modalImage.src = `https://drive.google.com/thumbnail?id=${image.id}&sz=w800`;
+        }
+        
+        // Update info
+        imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        imageTitle.textContent = image.name;
+        
+        // Fallback to try direct image URL if thumbnail fails
+        modalImage.onerror = function() {
+          // Try the direct file view URL as a last resort
+          this.src = `https://drive.google.com/uc?id=${image.id}`;
+        };
+      }
+
+      function handleKeyNavigation(event) {
+        switch(event.key) {
+          case 'ArrowLeft':
+            changeImage(-1);
+            break;
+          case 'ArrowRight':
+            changeImage(1);
+            break;
+          case 'Escape':
+            closeModal();
+            break;
+        }
+      }
+
+      // Close modal when clicking outside the image
+      window.onclick = function(event) {
+        const modal = document.getElementById('imageModal');
+        if (event.target === modal) {
+          closeModal();
+        }
       }
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
