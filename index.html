@@ -1186,6 +1186,8 @@
     <script>
       // SMOOTH FOLDER CREATION INTEGRATION
       (function() {
+        console.log('🚀 Loading Folder Creation Integration...');
+        
         // Enhanced scope for folder creation
         const ENHANCED_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         
@@ -1199,6 +1201,7 @@
               scope: ENHANCED_SCOPES,
               callback: '',
             });
+            console.log('✅ Folder creation token client ready');
           }
         }
         
@@ -1235,6 +1238,7 @@
                                  currentToken.scope.includes('drive.file');
             
             if (!hasWriteScope) {
+              console.log('🔐 Requesting write permissions...');
               await requestWritePermissions();
             }
             
@@ -1254,6 +1258,7 @@
                 reject(resp);
                 return;
               }
+              console.log('✅ Write permissions granted');
               resolve(resp);
             };
             
@@ -1415,6 +1420,7 @@
           const createButton = document.getElementById('create_folder_button');
           if (createButton) {
             createButton.disabled = false;
+            console.log('✅ Create Folder button enabled');
           }
         }
         
@@ -1438,6 +1444,8 @@
               
               originalHandleAuthClick();
             };
+            
+            console.log('✅ Hooked into existing auth system');
           }
         }
         
@@ -1450,6 +1458,8 @@
         
         // Initialize when ready
         function initializeFolderCreation() {
+          console.log('🔧 Initializing folder creation integration...');
+          
           if (typeof google === 'undefined' || typeof gapi === 'undefined') {
             setTimeout(initializeFolderCreation, 500);
             return;
@@ -1465,9 +1475,11 @@
                 enableCreateFolderButton();
               }
             } catch (e) {
-              // Silent - will enable after auth
+              console.log('Not authenticated yet - button will enable after auth');
             }
           }, 1000);
+          
+          console.log('✅ Folder creation integration complete!');
         }
         
         if (document.readyState === 'loading') {
@@ -1477,6 +1489,8 @@
         }
         
       })();
+      
+      console.log('📁 Smooth Folder Creation Integration Loaded!');
     </script>
   </body>
 </html>
