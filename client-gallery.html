@@ -101,10 +101,16 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            position: relative;
         }
         
         .photo-item:hover {
             transform: translateY(-5px);
+        }
+        
+        .photo-item.rated {
+            border: 3px solid #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
         }
         
         .photo-container {
@@ -131,6 +137,69 @@
         .photo-date {
             font-size: 12px;
             color: #777;
+        }
+
+        /* Rating indicators on thumbnails */
+        .rating-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 8px;
+            border-radius: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .photo-item.rated .rating-indicator {
+            display: block;
+        }
+
+        /* Rating Summary Panel */
+        .rating-summary {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .rating-summary h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .rating-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .rating-count .emoji {
+            font-size: 18px;
+        }
+
+        /* Console Commands Help */
+        .console-help {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
         }
 
         /* Toast notifications */
@@ -267,9 +336,47 @@
             right: 20px;
         }
         
-        .thumbnails-container {
+        /* Rating controls in lightbox */
+        .rating-controls {
             position: absolute;
             bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 25px;
+            z-index: 1001;
+        }
+        
+        .rating-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+            padding: 8px;
+            border-radius: 50%;
+        }
+        
+        .rating-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .rating-btn.selected {
+            opacity: 1;
+            transform: scale(1.2);
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .thumbnails-container {
+            position: absolute;
+            bottom: 120px;
             left: 0;
             width: 100%;
             height: 90px;
@@ -470,10 +577,21 @@
             
             .thumbnails-container {
                 height: 70px;
+                bottom: 100px;
             }
             
             .thumbnail {
                 height: 40px;
+            }
+            
+            .rating-controls {
+                bottom: 15px;
+                padding: 10px 15px;
+            }
+            
+            .rating-btn {
+                font-size: 24px;
+                padding: 6px;
             }
             
             .zoom-controls {
@@ -485,6 +603,39 @@
 </head>
 <body>
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Rating Summary Panel -->
+    <div id="ratingSummary" class="rating-summary">
+        <h3>Your Ratings</h3>
+        <div class="rating-count">
+            <span class="emoji">❤️</span>
+            <span>Must Have: <strong id="heartCount">0</strong></span>
+        </div>
+        <div class="rating-count">
+            <span class="emoji">👍</span>
+            <span>Like: <strong id="likeCount">0</strong></span>
+        </div>
+        <div class="rating-count">
+            <span class="emoji">🤔</span>
+            <span>Maybe: <strong id="maybeCount">0</strong></span>
+        </div>
+        <div class="rating-count">
+            <span class="emoji">👎</span>
+            <span>No: <strong id="noCount">0</strong></span>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            Total Rated: <strong id="totalRated">0</strong> / <strong id="totalPhotos">0</strong>
+        </div>
+    </div>
+
+    <!-- Console Help -->
+    <div id="consoleHelp" class="console-help">
+        <strong>Console Commands:</strong><br>
+        ratePhoto(index, rating) - Rate a photo<br>
+        getRatings() - Get all ratings<br>
+        clearRatings() - Clear all ratings<br>
+        exportRatings() - Export ratings
+    </div>
 
     <header>
         <div class="container">
@@ -532,6 +683,14 @@
                 <div class="contact">
                     <p id="studioContact">Select your favorite photos from this collection</p>
                 </div>
+                <div style="margin-top: 10px;">
+                    <button onclick="showConsoleHelp()" class="btn" style="font-size: 12px; padding: 8px 12px;">
+                        Show Console Commands
+                    </button>
+                    <button onclick="exportRatings()" class="btn" style="font-size: 12px; padding: 8px 12px; margin-left: 10px;">
+                        Export Ratings
+                    </button>
+                </div>
             </div>
             
             <div id="photosGrid" class="photos-grid">
@@ -560,10 +719,234 @@
         let shareData = null;
         let gapiInitialized = false;
 
+        // Rating system variables
+        let photoRatings = {};
+        let galleryId = '';
+
         const IMAGE_MIME_TYPES = [
             'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
             'image/webp', 'image/bmp', 'image/svg+xml', 'image/tiff'
         ];
+
+        // Rating categories
+        const RATING_CATEGORIES = {
+            heart: { emoji: '❤️', label: 'Must Have', color: '#e74c3c' },
+            like: { emoji: '👍', label: 'Like', color: '#27ae60' },
+            maybe: { emoji: '🤔', label: 'Maybe', color: '#f39c12' },
+            no: { emoji: '👎', label: 'No', color: '#95a5a6' }
+        };
+
+        // ===============================================
+        // RATING SYSTEM - localStorage Implementation
+        // ===============================================
+
+        // Load ratings from localStorage
+        function loadRatings() {
+            try {
+                const stored = localStorage.getItem(`snapselect_ratings_${galleryId}`);
+                photoRatings = stored ? JSON.parse(stored) : {};
+                console.log('📊 Loaded ratings from localStorage:', photoRatings);
+                updateRatingSummary();
+            } catch (error) {
+                console.error('Error loading ratings:', error);
+                photoRatings = {};
+            }
+        }
+
+        // Save ratings to localStorage
+        function saveRatings() {
+            try {
+                localStorage.setItem(`snapselect_ratings_${galleryId}`, JSON.stringify(photoRatings));
+                console.log('💾 Saved ratings to localStorage');
+            } catch (error) {
+                console.error('Error saving ratings:', error);
+            }
+        }
+
+        // Rate a photo
+        function ratePhoto(photoIndex, rating) {
+            if (photoIndex < 0 || photoIndex >= allGalleryPhotos.length) {
+                console.error('Invalid photo index:', photoIndex);
+                return false;
+            }
+
+            if (!RATING_CATEGORIES[rating]) {
+                console.error('Invalid rating:', rating);
+                return false;
+            }
+
+            const photo = allGalleryPhotos[photoIndex];
+            const photoId = photo.id;
+
+            // Check if removing rating (same rating clicked again)
+            if (photoRatings[photoId] === rating) {
+                delete photoRatings[photoId];
+                console.log(`🗑️ Removed rating for photo ${photoIndex}: ${photo.name}`);
+                showToast(`Removed rating for ${photo.name}`, 'info');
+            } else {
+                photoRatings[photoId] = rating;
+                console.log(`⭐ Rated photo ${photoIndex} as ${rating}: ${photo.name}`);
+                showToast(`Rated ${photo.name} as ${RATING_CATEGORIES[rating].label}`, 'success');
+            }
+
+            saveRatings();
+            updateRatingSummary();
+            updatePhotoRatingDisplay(photoIndex);
+            updateLightboxRating(photoIndex);
+
+            return true;
+        }
+
+        // Get photo rating
+        function getPhotoRating(photoIndex) {
+            if (photoIndex < 0 || photoIndex >= allGalleryPhotos.length) return null;
+            const photoId = allGalleryPhotos[photoIndex].id;
+            return photoRatings[photoId] || null;
+        }
+
+        // Update rating summary panel
+        function updateRatingSummary() {
+            const counts = { heart: 0, like: 0, maybe: 0, no: 0 };
+            
+            Object.values(photoRatings).forEach(rating => {
+                if (counts[rating] !== undefined) {
+                    counts[rating]++;
+                }
+            });
+
+            document.getElementById('heartCount').textContent = counts.heart;
+            document.getElementById('likeCount').textContent = counts.like;
+            document.getElementById('maybeCount').textContent = counts.maybe;
+            document.getElementById('noCount').textContent = counts.no;
+            
+            const totalRated = Object.keys(photoRatings).length;
+            document.getElementById('totalRated').textContent = totalRated;
+            document.getElementById('totalPhotos').textContent = allGalleryPhotos.length;
+
+            // Show/hide summary panel
+            const summaryPanel = document.getElementById('ratingSummary');
+            summaryPanel.style.display = totalRated > 0 ? 'block' : 'none';
+        }
+
+        // Update photo rating display in grid
+        function updatePhotoRatingDisplay(photoIndex) {
+            const photoElement = document.querySelector(`[data-photo-index="${photoIndex}"]`);
+            if (!photoElement) return;
+
+            const rating = getPhotoRating(photoIndex);
+            const indicator = photoElement.querySelector('.rating-indicator');
+
+            if (rating) {
+                photoElement.classList.add('rated');
+                if (indicator) {
+                    indicator.textContent = `${RATING_CATEGORIES[rating].emoji} ${RATING_CATEGORIES[rating].label}`;
+                }
+            } else {
+                photoElement.classList.remove('rated');
+                if (indicator) {
+                    indicator.textContent = '';
+                }
+            }
+        }
+
+        // Update lightbox rating buttons
+        function updateLightboxRating(photoIndex) {
+            const lightbox = document.getElementById('photoLightbox');
+            if (!lightbox) return;
+
+            const rating = getPhotoRating(photoIndex);
+            const ratingButtons = lightbox.querySelectorAll('.rating-btn');
+            
+            ratingButtons.forEach(btn => {
+                const btnRating = btn.getAttribute('data-rating');
+                btn.classList.toggle('selected', btnRating === rating);
+            });
+        }
+
+        // Console helper functions (Global scope for browser console)
+        window.ratePhoto = ratePhoto;
+        window.getRatings = () => {
+            console.table(photoRatings);
+            return photoRatings;
+        };
+        window.clearRatings = () => {
+            photoRatings = {};
+            saveRatings();
+            updateRatingSummary();
+            // Update all photo displays
+            allGalleryPhotos.forEach((_, index) => updatePhotoRatingDisplay(index));
+            showToast('All ratings cleared', 'info');
+            console.log('🧹 All ratings cleared');
+        };
+        window.exportRatings = exportRatings;
+
+        // Export ratings function
+        function exportRatings() {
+            const ratingsData = {
+                galleryId: galleryId,
+                galleryName: shareData?.folderName || 'Unknown Gallery',
+                exportedAt: new Date().toISOString(),
+                totalPhotos: allGalleryPhotos.length,
+                totalRated: Object.keys(photoRatings).length,
+                ratings: {}
+            };
+
+            // Include photo details with ratings
+            Object.entries(photoRatings).forEach(([photoId, rating]) => {
+                const photo = allGalleryPhotos.find(p => p.id === photoId);
+                ratingsData.ratings[photoId] = {
+                    photoName: photo?.name || 'Unknown',
+                    rating: rating,
+                    ratingLabel: RATING_CATEGORIES[rating]?.label || 'Unknown',
+                    photoUrl: photo?.url || ''
+                };
+            });
+
+            // Create organized summary
+            const organized = {
+                '❤️ Must Have': [],
+                '👍 Like': [],
+                '🤔 Maybe': [],
+                '👎 No': []
+            };
+
+            Object.entries(ratingsData.ratings).forEach(([photoId, data]) => {
+                const category = RATING_CATEGORIES[data.rating];
+                if (category) {
+                    organized[`${category.emoji} ${category.label}`].push({
+                        photoId: photoId,
+                        photoName: data.photoName,
+                        photoUrl: data.photoUrl
+                    });
+                }
+            });
+
+            ratingsData.organized = organized;
+
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(ratingsData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `snapselect-ratings-${galleryId}-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast('Ratings exported successfully!', 'success');
+            console.log('📄 Ratings exported:', ratingsData);
+        }
+
+        // Show console help
+        function showConsoleHelp() {
+            const helpDiv = document.getElementById('consoleHelp');
+            helpDiv.style.display = helpDiv.style.display === 'none' ? 'block' : 'none';
+            
+            if (helpDiv.style.display === 'block') {
+                setTimeout(() => {
+                    helpDiv.style.display = 'none';
+                }, 10000);
+            }
+        }
 
         // Disable right-click and keyboard shortcuts for content protection
         document.addEventListener('contextmenu', function(e) {
@@ -596,6 +979,7 @@
             if (shareParam) {
                 try {
                     shareData = JSON.parse(atob(shareParam));
+                    galleryId = shareData.folderId; // Use folder ID as gallery ID
                     console.log('Share data loaded:', shareData);
                     
                     // Update gallery title
@@ -732,6 +1116,9 @@
                     thumbnailUrl: image.thumbnailLink ? image.thumbnailLink.replace(/=s\d+/, '=s400') : `https://drive.google.com/thumbnail?id=${image.id}&sz=w400`
                 }));
 
+                // Load existing ratings after photos are loaded
+                loadRatings();
+                
                 displayGallery();
                 
             } catch (error) {
@@ -759,14 +1146,18 @@
             // Update gallery info
             const photoCount = allGalleryPhotos.length;
             document.getElementById('studioContact').textContent = 
-                `${photoCount} photos available • Select your favorites • Powered by SnapSelect`;
+                `${photoCount} photos available • Click photos to rate them • Use browser console for advanced commands`;
 
             allGalleryPhotos.forEach((photo, index) => {
                 const photoElement = createPhotoElement(photo, index);
                 photosGrid.appendChild(photoElement);
             });
 
-            showToast(`Gallery loaded with ${photoCount} photos`, 'success');
+            // Update rating displays for all photos
+            allGalleryPhotos.forEach((_, index) => updatePhotoRatingDisplay(index));
+
+            showToast(`Gallery loaded with ${photoCount} photos. Click on photos to rate them!`, 'success');
+            console.log('🎉 Gallery loaded! You can now rate photos by clicking on them or using console commands.');
         }
 
         // Create photo element
@@ -781,6 +1172,11 @@
             photoContainer.setAttribute('tabindex', '0');
             photoContainer.setAttribute('role', 'img');
             photoContainer.setAttribute('aria-label', photo.name);
+            
+            // Add rating indicator
+            const ratingIndicator = document.createElement('div');
+            ratingIndicator.className = 'rating-indicator';
+            photoContainer.appendChild(ratingIndicator);
             
             // Add watermark overlay
             const watermarkOverlay = document.createElement('div');
@@ -802,7 +1198,7 @@
             
             const photoDate = document.createElement('div');
             photoDate.className = 'photo-date';
-            photoDate.textContent = 'Shared Gallery';
+            photoDate.textContent = 'Click to rate this photo';
             
             photoDetails.appendChild(photoName);
             photoDetails.appendChild(photoDate);
@@ -824,6 +1220,29 @@
             });
             
             return photoItem;
+        }
+
+        // Create rating controls for lightbox
+        function createRatingControls(photoIndex) {
+            const ratingControls = document.createElement('div');
+            ratingControls.className = 'rating-controls';
+            
+            Object.entries(RATING_CATEGORIES).forEach(([ratingKey, ratingData]) => {
+                const ratingBtn = document.createElement('button');
+                ratingBtn.className = 'rating-btn';
+                ratingBtn.innerHTML = ratingData.emoji;
+                ratingBtn.setAttribute('data-rating', ratingKey);
+                ratingBtn.setAttribute('title', ratingData.label);
+                
+                ratingBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    ratePhoto(photoIndex, ratingKey);
+                });
+                
+                ratingControls.appendChild(ratingBtn);
+            });
+            
+            return ratingControls;
         }
 
         // Open lightbox
@@ -1009,7 +1428,7 @@
                 const caption = document.createElement('div');
                 caption.className = 'photo-caption';
                 caption.style.position = 'absolute';
-                caption.style.bottom = '160px';
+                caption.style.bottom = '260px';
                 caption.style.left = '0';
                 caption.style.width = '100%';
                 caption.style.textAlign = 'center';
@@ -1023,6 +1442,10 @@
                 caption.style.maxWidth = '100%';
                 imageContainer.appendChild(caption);
             }
+            
+            // Add rating controls
+            const ratingControls = createRatingControls(index);
+            imageContainer.appendChild(ratingControls);
             
             imageContainer.appendChild(img);
             imageContainer.appendChild(zoomControls);
@@ -1066,6 +1489,18 @@
                             navigateToPhoto(index + 1);
                         }
                         break;
+                    case '1':
+                        ratePhoto(index, 'heart');
+                        break;
+                    case '2':
+                        ratePhoto(index, 'like');
+                        break;
+                    case '3':
+                        ratePhoto(index, 'maybe');
+                        break;
+                    case '4':
+                        ratePhoto(index, 'no');
+                        break;
                     case '+':
                         if (zoomLevel < 3) {
                             zoomLevel += 0.25;
@@ -1092,6 +1527,9 @@
             
             // Add lightbox to page
             document.body.appendChild(lightbox);
+            
+            // Update rating buttons based on current rating
+            updateLightboxRating(index);
             
             // Focus for keyboard navigation
             lightbox.focus();
@@ -1133,6 +1571,9 @@
                     caption.textContent = newPhoto.name || '';
                 }
                 
+                // Update rating controls
+                updateLightboxRating(index);
+                
                 // Update active thumbnail
                 const thumbnails = lightbox.querySelectorAll('.thumbnail');
                 thumbnails.forEach((thumb, i) => {
@@ -1173,13 +1614,22 @@
                 if (index < allGalleryPhotos.length - 1) {
                     const newNextButton = document.createElement('button');
                     newNextButton.className = 'modal-nav-button modal-next';
-                    newNextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    newNextButton.innerHTML = '<i class="fas fa-chevron-right</i>';
                     newNextButton.setAttribute('aria-label', 'Next photo');
                     newNextButton.addEventListener('click', function(e) {
                         e.stopPropagation();
                         navigateToPhoto(index + 1);
                     });
                     imageContainer.appendChild(newNextButton);
+                }
+                
+                // Update rating controls for new photo
+                const ratingControls = imageContainer.querySelector('.rating-controls');
+                if (ratingControls) {
+                    ratingControls.remove();
+                    const newRatingControls = createRatingControls(index);
+                    imageContainer.appendChild(newRatingControls);
+                    updateLightboxRating(index);
                 }
                 
                 // Fade in the new image
@@ -1250,6 +1700,38 @@
         function gapiLoaded() {
             gapi.load('client', initializeGapiClient);
         }
+
+        // Console log helper for testing
+        console.log(`
+🎉 SnapSelect Gallery with Rating System Loaded!
+
+📋 Available Console Commands:
+• ratePhoto(index, rating) - Rate a photo (rating: 'heart', 'like', 'maybe', 'no')
+• getRatings() - View all current ratings
+• clearRatings() - Clear all ratings
+• exportRatings() - Export ratings as JSON file
+
+🎯 Quick Examples:
+• ratePhoto(0, 'heart') - Rate first photo as "Must Have"
+• ratePhoto(1, 'like') - Rate second photo as "Like"
+• ratePhoto(2, 'maybe') - Rate third photo as "Maybe"
+• ratePhoto(3, 'no') - Rate fourth photo as "No"
+
+⌨️ Keyboard Shortcuts (in lightbox):
+• 1 = Must Have (❤️)
+• 2 = Like (👍)
+• 3 = Maybe (🤔)
+• 4 = No (👎)
+• Left/Right arrows = Navigate photos
+• +/- = Zoom in/out
+• Esc = Close lightbox
+
+🔍 Testing Workflow:
+1. Load gallery and rate some photos
+2. Check ratings with getRatings()
+3. Export ratings with exportRatings()
+4. View organized data in downloaded JSON file
+        `);
     </script>
     
     <!-- Load Google APIs -->
