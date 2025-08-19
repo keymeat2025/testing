@@ -421,6 +421,39 @@
       .view-toggle {
         margin: 20px 0;
       }
+      
+      /* Folder Creation CSS */
+      #create_folder_button {
+        background: linear-gradient(45deg, #34a853, #4caf50) !important;
+      }
+      
+      #create_folder_button:hover {
+        background: linear-gradient(45deg, #2d8f47, #43a047) !important;
+        transform: translateY(-1px);
+      }
+      
+      #createFolderModal {
+        font-family: Arial, sans-serif;
+      }
+      
+      #createFolderModal input {
+        outline: none;
+      }
+      
+      #createFolderModal input:focus {
+        border-color: #4285f4;
+        box-shadow: 0 0 5px rgba(66, 133, 244, 0.3);
+      }
+      
+      #createFolderModal button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      
+      @keyframes modalSlideIn {
+        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
     </style>
   </head>
   <body>
@@ -1149,5 +1182,301 @@
     </script>
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+    <script>
+      // SMOOTH FOLDER CREATION INTEGRATION
+      (function() {
+        // Enhanced scope for folder creation
+        const ENHANCED_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
+        
+        // Create folder creation token client
+        let folderTokenClient;
+        
+        function createFolderTokenClient() {
+          if (typeof google !== 'undefined' && google.accounts) {
+            folderTokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: CLIENT_ID,
+              scope: ENHANCED_SCOPES,
+              callback: '',
+            });
+          }
+        }
+        
+        // Add the Create Folder button to existing view-toggle
+        function addCreateFolderButton() {
+          const viewToggle = document.querySelector('.view-toggle');
+          if (!viewToggle || document.getElementById('create_folder_button')) {
+            return;
+          }
+          
+          const createButton = document.createElement('button');
+          createButton.id = 'create_folder_button';
+          createButton.onclick = handleCreateFolderClick;
+          createButton.disabled = true;
+          createButton.innerHTML = '📁+ Create Folder';
+          
+          // Insert after the "Share Folders" button
+          const shareButton = document.getElementById('share_folders_button');
+          if (shareButton) {
+            shareButton.insertAdjacentElement('afterend', createButton);
+          } else {
+            viewToggle.appendChild(createButton);
+          }
+          
+          console.log('✅ Create Folder button added');
+        }
+        
+        // Handle create folder click (with smart auth)
+        async function handleCreateFolderClick() {
+          try {
+            // Check current token scope
+            const currentToken = gapi.client.getToken();
+            const hasWriteScope = currentToken && currentToken.scope && 
+                                 currentToken.scope.includes('drive.file');
+            
+            if (!hasWriteScope) {
+              await requestWritePermissions();
+            }
+            
+            showCreateFolderModal();
+            
+          } catch (error) {
+            console.error('❌ Auth error:', error);
+            alert('⚠️ Authorization failed. Please try again.');
+          }
+        }
+        
+        // Request write permissions
+        function requestWritePermissions() {
+          return new Promise((resolve, reject) => {
+            folderTokenClient.callback = async (resp) => {
+              if (resp.error !== undefined) {
+                reject(resp);
+                return;
+              }
+              resolve(resp);
+            };
+            
+            folderTokenClient.requestAccessToken({prompt: 'consent'});
+          });
+        }
+        
+        // Show create folder modal
+        function showCreateFolderModal() {
+          // Remove existing modal
+          const existingModal = document.getElementById('createFolderModal');
+          if (existingModal) {
+            document.body.removeChild(existingModal);
+          }
+          
+          // Get current location info
+          const currentLocation = currentFolderId === 'root' ? 'Root Folder (My Drive)' : 'Current Folder';
+          
+          // Create modal
+          const modal = document.createElement('div');
+          modal.id = 'createFolderModal';
+          modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.75); z-index: 10000; display: flex;
+            align-items: center; justify-content: center; backdrop-filter: blur(2px);
+          `;
+          
+          const dialog = document.createElement('div');
+          dialog.style.cssText = `
+            background: white; padding: 30px; border-radius: 12px; width: 420px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease;
+          `;
+          
+          dialog.innerHTML = `
+            <h3 style="margin: 0 0 20px 0; text-align: center; color: #333; font-size: 22px;">
+              📁 Create New Folder
+            </h3>
+            <div style="text-align: center; margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+              <span style="color: #666; font-size: 14px;">Creating in: </span>
+              <strong style="color: #333;">${currentLocation}</strong>
+            </div>
+            <input type="text" id="newFolderNameInput" placeholder="Enter folder name..." 
+                   style="width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; 
+                          font-size: 16px; box-sizing: border-box; margin-bottom: 25px;">
+            <div style="text-align: center; display: flex; gap: 12px; justify-content: center;">
+              <button onclick="closeFolderModal()" 
+                      style="padding: 12px 24px; background: #666; color: white; border: none; 
+                             border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                Cancel
+              </button>
+              <button onclick="executeFolderCreation()" 
+                      style="padding: 12px 24px; background: #4285f4; color: white; border: none; 
+                             border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                Create Folder
+              </button>
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 6px; 
+                        text-align: center; font-size: 12px; color: #2e7d32;">
+              ✅ Ready to create folders with write permissions
+            </div>
+          `;
+          
+          modal.appendChild(dialog);
+          document.body.appendChild(modal);
+          
+          // Focus and setup
+          setTimeout(() => {
+            const input = document.getElementById('newFolderNameInput');
+            input.focus();
+            input.select();
+          }, 100);
+          
+          // Enter key support
+          document.getElementById('newFolderNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              executeFolderCreation();
+            }
+          });
+          
+          // Click outside to close
+          modal.onclick = function(e) {
+            if (e.target === modal) {
+              closeFolderModal();
+            }
+          };
+        }
+        
+        // Execute folder creation
+        async function executeFolderCreation() {
+          const folderName = document.getElementById('newFolderNameInput').value.trim();
+          
+          if (!folderName) {
+            alert('📝 Please enter a folder name');
+            document.getElementById('newFolderNameInput').focus();
+            return;
+          }
+          
+          const createBtn = document.querySelector('#createFolderModal button[onclick="executeFolderCreation()"]');
+          const originalText = createBtn.textContent;
+          
+          try {
+            // Show loading
+            createBtn.textContent = 'Creating...';
+            createBtn.disabled = true;
+            
+            // Create the folder
+            const newFolder = await createNewFolder(folderName, currentFolderId);
+            
+            // Close modal
+            closeFolderModal();
+            
+            // Success message
+            alert(`✅ Folder "${folderName}" created successfully!\n\n📁 Folder ID: ${newFolder.id}`);
+            
+            // Refresh the current view
+            if (currentView === 'folders') {
+              loadFolders(currentFolderId);
+            } else {
+              loadFolders(currentFolderId);
+            }
+            
+          } catch (error) {
+            console.error('❌ Folder creation error:', error);
+            alert(`❌ Failed to create folder: ${error.message}`);
+            
+            // Reset button
+            createBtn.textContent = originalText;
+            createBtn.disabled = false;
+          }
+        }
+        
+        // Core folder creation function
+        async function createNewFolder(name, parentId = 'root') {
+          const metadata = {
+            name: name,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentId || 'root']
+          };
+          
+          const response = await gapi.client.drive.files.create({
+            resource: metadata,
+            fields: 'id, name, createdTime, parents'
+          });
+          
+          console.log('✅ Folder created:', response.result);
+          return response.result;
+        }
+        
+        // Close modal
+        function closeFolderModal() {
+          const modal = document.getElementById('createFolderModal');
+          if (modal) {
+            document.body.removeChild(modal);
+          }
+        }
+        
+        // Enable create folder button after auth
+        function enableCreateFolderButton() {
+          const createButton = document.getElementById('create_folder_button');
+          if (createButton) {
+            createButton.disabled = false;
+          }
+        }
+        
+        // Hook into existing auth system
+        function hookIntoExistingAuth() {
+          const originalHandleAuthClick = window.handleAuthClick;
+          
+          if (originalHandleAuthClick) {
+            window.handleAuthClick = function() {
+              const originalCallback = tokenClient.callback;
+              
+              tokenClient.callback = async function(resp) {
+                if (originalCallback) {
+                  await originalCallback(resp);
+                }
+                
+                if (resp.error === undefined) {
+                  enableCreateFolderButton();
+                }
+              };
+              
+              originalHandleAuthClick();
+            };
+          }
+        }
+        
+        // Make functions globally available
+        window.handleCreateFolderClick = handleCreateFolderClick;
+        window.showCreateFolderModal = showCreateFolderModal;
+        window.executeFolderCreation = executeFolderCreation;
+        window.closeFolderModal = closeFolderModal;
+        window.createNewFolder = createNewFolder;
+        
+        // Initialize when ready
+        function initializeFolderCreation() {
+          if (typeof google === 'undefined' || typeof gapi === 'undefined') {
+            setTimeout(initializeFolderCreation, 500);
+            return;
+          }
+          
+          createFolderTokenClient();
+          addCreateFolderButton();
+          hookIntoExistingAuth();
+          
+          setTimeout(() => {
+            try {
+              if (gapi.client && gapi.client.getToken && gapi.client.getToken()) {
+                enableCreateFolderButton();
+              }
+            } catch (e) {
+              // Silent - will enable after auth
+            }
+          }, 1000);
+        }
+        
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initializeFolderCreation);
+        } else {
+          initializeFolderCreation();
+        }
+        
+      })();
+    </script>
   </body>
 </html>
