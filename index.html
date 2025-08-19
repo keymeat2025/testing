@@ -1183,11 +1183,11 @@
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 
+
+    
     <script>
       // SMOOTH FOLDER CREATION INTEGRATION
       (function() {
-        console.log('🚀 Loading Folder Creation Integration...');
-        
         // Enhanced scope for folder creation
         const ENHANCED_SCOPES = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file';
         
@@ -1201,7 +1201,6 @@
               scope: ENHANCED_SCOPES,
               callback: '',
             });
-            console.log('✅ Folder creation token client ready');
           }
         }
         
@@ -1225,8 +1224,6 @@
           } else {
             viewToggle.appendChild(createButton);
           }
-          
-          console.log('✅ Create Folder button added');
         }
         
         // Handle create folder click (with smart auth)
@@ -1238,7 +1235,6 @@
                                  currentToken.scope.includes('drive.file');
             
             if (!hasWriteScope) {
-              console.log('🔐 Requesting write permissions...');
               await requestWritePermissions();
             }
             
@@ -1258,7 +1254,6 @@
                 reject(resp);
                 return;
               }
-              console.log('✅ Write permissions granted');
               resolve(resp);
             };
             
@@ -1327,16 +1322,21 @@
           // Focus and setup
           setTimeout(() => {
             const input = document.getElementById('newFolderNameInput');
-            input.focus();
-            input.select();
+            if (input) {
+              input.focus();
+              input.select();
+            }
           }, 100);
           
           // Enter key support
-          document.getElementById('newFolderNameInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-              executeFolderCreation();
-            }
-          });
+          const input = document.getElementById('newFolderNameInput');
+          if (input) {
+            input.addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                executeFolderCreation();
+              }
+            });
+          }
           
           // Click outside to close
           modal.onclick = function(e) {
@@ -1348,15 +1348,20 @@
         
         // Execute folder creation
         async function executeFolderCreation() {
-          const folderName = document.getElementById('newFolderNameInput').value.trim();
+          const folderNameInput = document.getElementById('newFolderNameInput');
+          if (!folderNameInput) return;
+          
+          const folderName = folderNameInput.value.trim();
           
           if (!folderName) {
             alert('📝 Please enter a folder name');
-            document.getElementById('newFolderNameInput').focus();
+            folderNameInput.focus();
             return;
           }
           
           const createBtn = document.querySelector('#createFolderModal button[onclick="executeFolderCreation()"]');
+          if (!createBtn) return;
+          
           const originalText = createBtn.textContent;
           
           try {
@@ -1374,10 +1379,12 @@
             alert(`✅ Folder "${folderName}" created successfully!\n\n📁 Folder ID: ${newFolder.id}`);
             
             // Refresh the current view
-            if (currentView === 'folders') {
-              loadFolders(currentFolderId);
-            } else {
-              loadFolders(currentFolderId);
+            if (typeof loadFolders === 'function') {
+              if (currentView === 'folders') {
+                loadFolders(currentFolderId);
+              } else {
+                loadFolders(currentFolderId);
+              }
             }
             
           } catch (error) {
@@ -1403,7 +1410,6 @@
             fields: 'id, name, createdTime, parents'
           });
           
-          console.log('✅ Folder created:', response.result);
           return response.result;
         }
         
@@ -1420,7 +1426,6 @@
           const createButton = document.getElementById('create_folder_button');
           if (createButton) {
             createButton.disabled = false;
-            console.log('✅ Create Folder button enabled');
           }
         }
         
@@ -1444,8 +1449,6 @@
               
               originalHandleAuthClick();
             };
-            
-            console.log('✅ Hooked into existing auth system');
           }
         }
         
@@ -1458,8 +1461,6 @@
         
         // Initialize when ready
         function initializeFolderCreation() {
-          console.log('🔧 Initializing folder creation integration...');
-          
           if (typeof google === 'undefined' || typeof gapi === 'undefined') {
             setTimeout(initializeFolderCreation, 500);
             return;
@@ -1475,11 +1476,9 @@
                 enableCreateFolderButton();
               }
             } catch (e) {
-              console.log('Not authenticated yet - button will enable after auth');
+              // Silent - will enable after auth
             }
           }, 1000);
-          
-          console.log('✅ Folder creation integration complete!');
         }
         
         if (document.readyState === 'loading') {
@@ -1489,8 +1488,7 @@
         }
         
       })();
-      
-      console.log('📁 Smooth Folder Creation Integration Loaded!');
-    </script>
+    </script>     
+
   </body>
 </html>
