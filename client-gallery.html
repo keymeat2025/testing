@@ -57,6 +57,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
+            autocomplete: new-password;
         }
         
         .btn {
@@ -518,7 +519,7 @@
             <p>This gallery is password protected. Please enter the password to view it.</p>
             <div id="passwordError" class="error-message">Incorrect password. Please try again.</div>
             <form id="passwordForm" onsubmit="return false;">
-                <input type="password" id="galleryPassword" class="password-input" placeholder="Enter password" aria-label="Gallery password">
+                <input type="password" id="galleryPassword" class="password-input" placeholder="Enter password" aria-label="Gallery password" autocomplete="new-password">
                 <button id="submitPasswordBtn" class="btn">View Gallery</button>
             </form>
         </div>
@@ -612,7 +613,7 @@
             }
         });
 
-        // Google API initialization
+        // Google API initialization - FIXED VERSION
         function gapiLoaded() {
             gapi.load('client', initializeGapiClient);
         }
@@ -640,26 +641,53 @@
             // Set up password form submission
             document.getElementById('submitPasswordBtn').addEventListener('click', verifyPassword);
             document.getElementById('passwordForm').addEventListener('submit', verifyPassword);
+            
+            // Add Enter key support
+            document.getElementById('galleryPassword').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    verifyPassword();
+                }
+            });
         }
 
-        // Verify password
+        // Verify password - FIXED VERSION
         function verifyPassword(e) {
             if (e) e.preventDefault();
             
             const enteredPassword = document.getElementById('galleryPassword').value;
-            const correctPassword = atob(shareData.password);
             
-            if (enteredPassword === correctPassword) {
-                document.getElementById('passwordScreen').style.display = 'none';
-                loadGalleryImages();
-            } else {
+            if (!enteredPassword) {
                 document.getElementById('passwordError').style.display = 'block';
-                document.getElementById('galleryPassword').value = '';
-                document.getElementById('galleryPassword').focus();
+                document.getElementById('passwordError').textContent = 'Please enter a password.';
+                return;
+            }
+            
+            if (!shareData) {
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('passwordError').textContent = 'No share data found.';
+                return;
+            }
+            
+            try {
+                const correctPassword = atob(shareData.password);
+                
+                if (enteredPassword === correctPassword) {
+                    document.getElementById('passwordScreen').style.display = 'none';
+                    loadGalleryImages();
+                } else {
+                    document.getElementById('passwordError').style.display = 'block';
+                    document.getElementById('passwordError').textContent = 'Incorrect password. Please try again.';
+                    document.getElementById('galleryPassword').value = '';
+                    document.getElementById('galleryPassword').focus();
+                }
+            } catch (error) {
+                console.error('Error verifying password:', error);
+                document.getElementById('passwordError').style.display = 'block';
+                document.getElementById('passwordError').textContent = 'Error verifying password.';
             }
         }
 
-        // Load gallery images from Google Drive
+        // Load gallery images from Google Drive - FIXED VERSION
         async function loadGalleryImages() {
             document.getElementById('loadingIndicator').style.display = 'block';
             
@@ -678,35 +706,30 @@
             }
 
             try {
-                // Authenticate silently for read-only access
-                await gapi.client.request({
-                    path: 'https://www.googleapis.com/oauth2/v1/tokeninfo',
-                    method: 'GET',
-                    params: {
-                        access_token: API_KEY
-                    }
-                }).catch(() => {
-                    // API key authentication for public access
-                    console.log('Using API key for public access');
-                });
-
-                // Load images from the shared folder
-                const mimeTypeQuery = IMAGE_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ');
+                console.log('📡 Making Google Drive API request...');
                 
+                // FIXED: Use the proper Google Drive API method
                 const response = await gapi.client.drive.files.list({
-                    q: `'${shareData.folderId}' in parents and (${mimeTypeQuery}) and trashed=false`,
+                    q: `'${shareData.folderId}' in parents and (mimeType contains 'image/') and trashed=false`,
                     pageSize: 100,
                     fields: 'files(id, name, mimeType, thumbnailLink, webViewLink, webContentLink)',
-                    orderBy: 'name',
-                    key: API_KEY
+                    orderBy: 'name'
                 });
 
+                console.log('✅ API Response:', response);
+
                 const images = response.result.files || [];
+                console.log(`📸 Found ${images.length} images`);
+
+                if (images.length === 0) {
+                    throw new Error('No images found in this folder');
+                }
+
                 allGalleryPhotos = images.map(image => ({
                     id: image.id,
                     name: image.name,
-                    url: image.webContentLink || `https://drive.google.com/uc?id=${image.id}`,
-                    thumbnailUrl: image.thumbnailLink || `https://drive.google.com/thumbnail?id=${image.id}&sz=w300`
+                    url: `https://drive.google.com/uc?id=${image.id}`,
+                    thumbnailUrl: image.thumbnailLink ? image.thumbnailLink.replace(/=s\d+/, '=s400') : `https://drive.google.com/thumbnail?id=${image.id}&sz=w400`
                 }));
 
                 displayGallery();
@@ -714,25 +737,10 @@
             } catch (error) {
                 console.error('Error loading gallery images:', error);
                 
-                // Fallback: Use mock data for testing
-                console.log('Using mock data for testing...');
-                createMockGallery();
+                // Fallback: Show error or use mock data for testing
+                console.log('Gallery failed to load, showing error...');
+                showPageError(`Failed to load gallery: ${error.message}`);
             }
-        }
-
-        // Create mock gallery for testing when API fails
-        function createMockGallery() {
-            const mockImages = [];
-            for (let i = 1; i <= 12; i++) {
-                mockImages.push({
-                    id: `mock_${i}`,
-                    name: `Photo ${i}.jpg`,
-                    url: `https://picsum.photos/800/600?random=${i}`,
-                    thumbnailUrl: `https://picsum.photos/300/200?random=${i}`
-                });
-            }
-            allGalleryPhotos = mockImages;
-            displayGallery();
         }
 
         // Display gallery
@@ -899,352 +907,4 @@
             function updateImageTransform() {
                 const img = lightbox.querySelector('.lightbox-image');
                 if (img) {
-                    img.style.transform = `scale(${zoomLevel}) translate(${currentX}px, ${currentY}px) rotate(${currentRotation}deg)`;
-                }
-            }
-            
-            zoomControls.appendChild(zoomInBtn);
-            zoomControls.appendChild(zoomOutBtn);
-            zoomControls.appendChild(zoomLevelDisplay);
-            
-            // Create main image
-            const img = document.createElement('img');
-            img.className = 'lightbox-image fadeIn';
-            img.src = photo.url;
-            img.dataset.index = index;
-            img.alt = photo.name;
-            img.draggable = false;
-            img.crossOrigin = "anonymous";
-            
-            // Mouse wheel zoom
-            imageContainer.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    // Zoom in
-                    if (zoomLevel < 3) zoomLevel += 0.25;
-                } else {
-                    // Zoom out
-                    if (zoomLevel > 0.5) zoomLevel -= 0.25;
-                }
-                updateImageTransform();
-                zoomLevelDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-            });
-            
-            // Mouse drag for panning
-            img.addEventListener('mousedown', function(e) {
-                isDragging = true;
-                startX = e.clientX - currentX;
-                startY = e.clientY - currentY;
-                imageContainer.style.cursor = 'grabbing';
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                currentX = e.clientX - startX;
-                currentY = e.clientY - startY;
-                updateImageTransform();
-            });
-
-            document.addEventListener('mouseup', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    imageContainer.style.cursor = 'grab';
-                }
-            });
-
-            // Add watermark overlay
-            const watermarkOverlay = document.createElement('div');
-            watermarkOverlay.className = 'image-watermark';
-            imageContainer.appendChild(watermarkOverlay);
-            
-            // Add watermark text
-            const watermarkText = document.createElement('div');
-            watermarkText.className = 'watermark-text';
-            watermarkText.textContent = 'SnapSelect © 2025';
-            imageContainer.appendChild(watermarkText);
-            
-            // Add protection layer
-            const protectionLayer = document.createElement('div');
-            protectionLayer.className = 'protection-layer';
-            protectionLayer.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-            imageContainer.appendChild(protectionLayer);
-            
-            // Add navigation buttons
-            if (index > 0) {
-                const prevButton = document.createElement('button');
-                prevButton.className = 'modal-nav-button modal-prev';
-                prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                prevButton.setAttribute('aria-label', 'Previous photo');
-                prevButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    navigateToPhoto(index - 1);
-                });
-                imageContainer.appendChild(prevButton);
-            }
-            
-            if (index < allGalleryPhotos.length - 1) {
-                const nextButton = document.createElement('button');
-                nextButton.className = 'modal-nav-button modal-next';
-                nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                nextButton.setAttribute('aria-label', 'Next photo');
-                nextButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    navigateToPhoto(index + 1);
-                });
-                imageContainer.appendChild(nextButton);
-            }
-            
-            // Add caption if available
-            if (photo.name) {
-                const caption = document.createElement('div');
-                caption.className = 'photo-caption';
-                caption.style.position = 'absolute';
-                caption.style.bottom = '160px';
-                caption.style.left = '0';
-                caption.style.width = '100%';
-                caption.style.textAlign = 'center';
-                caption.style.color = 'white';
-                caption.style.padding = '10px';
-                caption.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                caption.textContent = photo.name;
-                caption.style.overflow = 'hidden';
-                caption.style.textOverflow = 'ellipsis';
-                caption.style.whiteSpace = 'normal';
-                caption.style.maxWidth = '100%';
-                imageContainer.appendChild(caption);
-            }
-            
-            imageContainer.appendChild(img);
-            imageContainer.appendChild(zoomControls);
-            lightbox.appendChild(imageContainer);
-            
-            // Add thumbnails container
-            const thumbnailsContainer = document.createElement('div');
-            thumbnailsContainer.className = 'thumbnails-container';
-            
-            // Add thumbnails for all photos
-            allGalleryPhotos.forEach((p, i) => {
-                const thumb = document.createElement('img');
-                thumb.className = 'thumbnail';
-                thumb.src = p.thumbnailUrl;
-                thumb.draggable = false;
-                if (i === index) {
-                    thumb.classList.add('active');
-                }
-                thumb.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    navigateToPhoto(i);
-                });
-                thumbnailsContainer.appendChild(thumb);
-            });
-            
-            lightbox.appendChild(thumbnailsContainer);
-            
-            // Handle keyboard navigation
-            lightbox.addEventListener('keydown', function(e) {
-                switch (e.key) {
-                    case 'Escape':
-                        closeLightbox();
-                        break;
-                    case 'ArrowLeft':
-                        if (index > 0) {
-                            navigateToPhoto(index - 1);
-                        }
-                        break;
-                    case 'ArrowRight':
-                        if (index < allGalleryPhotos.length - 1) {
-                            navigateToPhoto(index + 1);
-                        }
-                        break;
-                    case '+':
-                        if (zoomLevel < 3) {
-                            zoomLevel += 0.25;
-                            updateImageTransform();
-                            zoomLevelDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-                        }
-                        break;
-                    case '-':
-                        if (zoomLevel > 0.5) {
-                            zoomLevel -= 0.25;
-                            updateImageTransform();
-                            zoomLevelDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
-                        }
-                        break;
-                }
-            });
-            
-            // Close when clicking on the background
-            lightbox.addEventListener('click', function(e) {
-                if (e.target === lightbox) {
-                    closeLightbox();
-                }
-            });
-            
-            // Add lightbox to page
-            document.body.appendChild(lightbox);
-            
-            // Focus for keyboard navigation
-            lightbox.focus();
-            
-            // Scroll the active thumbnail into view
-            const activeThumb = thumbnailsContainer.querySelector('.thumbnail.active');
-            if (activeThumb) {
-                activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-            }
-        }
-
-        // Navigate to photo in lightbox
-        function navigateToPhoto(index) {
-            if (index < 0 || index >= allGalleryPhotos.length) return;
-            
-            currentPhotoIndex = index;
-            const lightbox = document.getElementById('photoLightbox');
-            const imageContainer = lightbox.querySelector('.lightbox-image-container');
-            
-            // Update current image with fade effect
-            const currentImg = lightbox.querySelector('.lightbox-image');
-            currentImg.classList.remove('fadeIn');
-            currentImg.classList.add('fadeOut');
-            
-            // Reset zoom level
-            currentImg.style.transform = 'scale(1)';
-            lightbox.querySelector('.zoom-level-text').textContent = '100%';
-            
-            setTimeout(() => {
-                // Update image source
-                const newPhoto = allGalleryPhotos[index];
-                currentImg.src = newPhoto.url;
-                currentImg.dataset.index = index;
-                currentImg.alt = newPhoto.name;
-                
-                // Update caption if exists
-                const caption = imageContainer.querySelector('.photo-caption');
-                if (caption) {
-                    caption.textContent = newPhoto.name || '';
-                }
-                
-                // Update active thumbnail
-                const thumbnails = lightbox.querySelectorAll('.thumbnail');
-                thumbnails.forEach((thumb, i) => {
-                    if (i === index) {
-                        thumb.classList.add('active');
-                        thumb.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-                    } else {
-                        thumb.classList.remove('active');
-                    }
-                });
-                
-                // Update navigation buttons
-                const prevButton = lightbox.querySelector('.modal-prev');
-                const nextButton = lightbox.querySelector('.modal-next');
-                
-                if (prevButton) {
-                    prevButton.remove();
-                }
-                
-                if (nextButton) {
-                    nextButton.remove();
-                }
-                
-                // Add prev button if not first photo
-                if (index > 0) {
-                    const newPrevButton = document.createElement('button');
-                    newPrevButton.className = 'modal-nav-button modal-prev';
-                    newPrevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                    newPrevButton.setAttribute('aria-label', 'Previous photo');
-                    newPrevButton.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        navigateToPhoto(index - 1);
-                    });
-                    imageContainer.appendChild(newPrevButton);
-                }
-                
-                // Add next button if not last photo
-                if (index < allGalleryPhotos.length - 1) {
-                    const newNextButton = document.createElement('button');
-                    newNextButton.className = 'modal-nav-button modal-next';
-                    newNextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                    newNextButton.setAttribute('aria-label', 'Next photo');
-                    newNextButton.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        navigateToPhoto(index + 1);
-                    });
-                    imageContainer.appendChild(newNextButton);
-                }
-                
-                // Fade in the new image
-                currentImg.classList.remove('fadeOut');
-                currentImg.classList.add('fadeIn');
-            }, 300);
-        }
-
-        // Close lightbox
-        function closeLightbox() {
-            const lightbox = document.getElementById('photoLightbox');
-            if (lightbox) {
-                lightbox.classList.add('fadeOut');
-                setTimeout(() => {
-                    document.body.removeChild(lightbox);
-                }, 300);
-            }
-        }
-
-        // Show page error
-        function showPageError(message) {
-            console.error("Page error:", message);
-            
-            // Hide loading indicator and other containers
-            document.getElementById('loadingIndicator').style.display = 'none';
-            document.getElementById('passwordScreen').style.display = 'none';
-            document.getElementById('galleryContainer').style.display = 'none';
-            
-            // Show error page
-            const errorPage = document.getElementById('errorPage');
-            errorPage.style.display = 'block';
-            
-            // Set error message
-            document.getElementById('errorMessage').textContent = message;
-            
-            // Setup retry button
-            document.getElementById('retryBtn').addEventListener('click', function() {
-                // Reload the page
-                window.location.reload();
-            });
-        }
-
-        // Show toast notification
-        function showToast(message, type = 'info') {
-            const toastContainer = document.getElementById('toastContainer');
-            
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            
-            // Add aria-live for accessibility
-            toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
-            
-            toastContainer.appendChild(toast);
-            
-            // Remove toast after 4 seconds
-            setTimeout(() => {
-                toast.classList.add('fadeOut');
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.remove();
-                    }
-                }, 300);
-            }, 4000);
-        }
-
-        // Initialize Google API when script loads
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-    </script>
-    
-    <!-- Load Google APIs -->
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-</body>
-</html>
+                    img.
