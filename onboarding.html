@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Google Cloud Setup - Production Test</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <title>Real Google Cloud Setup - Fixed & Compliant</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -390,16 +390,24 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Real Google Cloud Setup Tester</h1>
-            <p>Production-ready Smart Popup + Polling (No Mocks)</p>
+            <h1>🚀 Fixed Google Cloud Setup Tester</h1>
+            <p>Using Google Identity Services (GIS) - Compliant & Working</p>
         </div>
 
         <div class="content">
             <!-- Setup Instructions -->
             <div class="setup-section">
-                <h3>🔧 Quick Setup Required</h3>
-                <p><strong>Before testing, you need a real Google Cloud OAuth Client ID:</strong></p>
+                <h3>🔧 Fixed Setup - No More Errors!</h3>
+                <p><strong>This version fixes all the JavaScript and Google API issues:</strong></p>
                 
+                <ul style="color: #856404; padding-left: 20px; margin: 15px 0;">
+                    <li>✅ Uses Google Identity Services (GIS) instead of deprecated gapi.auth2</li>
+                    <li>✅ Fixes "Cannot access before initialization" error</li>
+                    <li>✅ Proper class declaration order</li>
+                    <li>✅ Compatible with modern Google APIs</li>
+                </ul>
+                
+                <p><strong>Setup your OAuth Client ID:</strong></p>
                 <ol style="color: #856404; padding-left: 20px; margin: 15px 0;">
                     <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #856404;">Google Cloud Console → Credentials</a></li>
                     <li>Create OAuth 2.0 Client ID (Web application)</li>
@@ -410,18 +418,18 @@
                     <!-- Will be filled by JavaScript -->
                 </div>
                 
-                <p><strong>Then paste your Client ID below:</strong></p>
+                <p><strong>Paste your Client ID:</strong></p>
                 <input type="text" class="config-input" id="clientIdInput" placeholder="123456789-abcdefghijk.apps.googleusercontent.com">
                 <button class="test-button" onclick="saveClientId()" style="margin-top: 10px;">💾 Save Client ID</button>
             </div>
 
             <!-- Authentication Section -->
             <div class="auth-section">
-                <h3>🔐 Step 1: Real Google Authentication</h3>
-                <p>Authenticate with Google using your real account to get actual access tokens.</p>
+                <h3>🔐 Step 1: Google Identity Services Authentication</h3>
+                <p>Using the new, compliant Google Identity Services API for authentication.</p>
                 
                 <button class="auth-button" id="authButton" onclick="authenticateUser()" disabled>
-                    🚀 Authenticate with Google (Real OAuth)
+                    🚀 Authenticate with Google (GIS API)
                 </button>
                 
                 <div class="user-info" id="userInfo">
@@ -439,10 +447,6 @@
                             <span class="config-label">Access Token:</span>
                             <span class="config-value" id="accessToken">-</span>
                         </div>
-                        <div class="config-item">
-                            <span class="config-label">Scopes:</span>
-                            <span class="config-value" id="userScopes">-</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -451,33 +455,33 @@
             <div class="test-section" id="test1">
                 <div class="test-header">
                     <div class="test-title">
-                        🏗️ Test 1: Real Project Creation with API Detection
+                        🏗️ Test 1: Real Project Creation Detection
                     </div>
                     <div class="test-status status-pending" id="test1Status">
                         Pending
                     </div>
                 </div>
                 <div class="test-description">
-                    Opens real Google Cloud Console in popup for project creation, then uses <strong>real Resource Manager API</strong> to detect when the project exists.
+                    Opens Google Cloud Console for project creation, uses real Resource Manager API for detection.
                 </div>
                 
                 <div class="instructions">
-                    <h4>📝 What to do in the popup:</h4>
+                    <h4>📝 Test Instructions:</h4>
                     <ol>
-                        <li>Click the test button below</li>
-                        <li>In the popup, create a project with any name containing "test" or "studio"</li>
-                        <li>Close the popup when project creation is complete</li>
-                        <li>Watch this page use real Google APIs to detect your new project</li>
+                        <li>Click the test button</li>
+                        <li>Create a project with "test" or "studio" in the name</li>
+                        <li>Close the popup when done</li>
+                        <li>Watch real API detection in action</li>
                     </ol>
                 </div>
                 
                 <button class="test-button" id="test1Button" onclick="testProjectCreation()" disabled>
-                    🚀 Open Real Project Creation Popup
+                    🚀 Test Project Creation
                 </button>
                 
                 <div class="popup-info" id="test1PopupInfo" style="display: none;">
-                    <div class="popup-status">Popup Status: <span id="test1PopupStatus">-</span></div>
-                    <div class="popup-details">Using real Resource Manager API to detect project creation...</div>
+                    <div class="popup-status">Status: <span id="test1PopupStatus">-</span></div>
+                    <div class="popup-details">Real Resource Manager API monitoring...</div>
                 </div>
                 
                 <div class="test-result" id="test1Result"></div>
@@ -487,74 +491,32 @@
             <div class="test-section" id="test2">
                 <div class="test-header">
                     <div class="test-title">
-                        🔌 Test 2: Real API Enablement Detection
+                        🔌 Test 2: API Enablement Detection
                     </div>
                     <div class="test-status status-pending" id="test2Status">
                         Pending
                     </div>
                 </div>
                 <div class="test-description">
-                    Opens Google Drive API page in popup, then uses <strong>real Service Usage API</strong> to detect when the API is enabled.
+                    Opens Google Drive API page, uses real Service Usage API for detection.
                 </div>
                 
                 <button class="test-button" id="test2Button" onclick="testAPIEnablement()" disabled>
-                    🔌 Enable Google Drive API (Real)
+                    🔌 Test API Enablement
                 </button>
                 
                 <div class="popup-info" id="test2PopupInfo" style="display: none;">
-                    <div class="popup-status">Popup Status: <span id="test2PopupStatus">-</span></div>
-                    <div class="popup-details">Using real Service Usage API to monitor enablement...</div>
+                    <div class="popup-status">Status: <span id="test2PopupStatus">-</span></div>
+                    <div class="popup-details">Real Service Usage API monitoring...</div>
                 </div>
                 
                 <div class="test-result" id="test2Result"></div>
-            </div>
-
-            <!-- Test 3: OAuth Setup -->
-            <div class="test-section" id="test3">
-                <div class="test-header">
-                    <div class="test-title">
-                        🔑 Test 3: Real OAuth Consent Configuration
-                    </div>
-                    <div class="test-status status-pending" id="test3Status">
-                        Pending
-                    </div>
-                </div>
-                <div class="test-description">
-                    Opens OAuth consent screen configuration page. Detection is limited due to Google's security restrictions (this is expected and normal).
-                </div>
-                
-                <button class="test-button" id="test3Button" onclick="testOAuthSetup()" disabled>
-                    🔑 Configure OAuth Consent (Real)
-                </button>
-                
-                <div class="popup-info" id="test3PopupInfo" style="display: none;">
-                    <div class="popup-status">Popup Status: <span id="test3PopupStatus">-</span></div>
-                    <div class="popup-details">OAuth consent screen configuration - limited API detection available.</div>
-                </div>
-                
-                <div class="test-result" id="test3Result"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration
-        let CLIENT_ID = null;
-        const SCOPES = [
-            'https://www.googleapis.com/auth/cloudplatformprojects',
-            'https://www.googleapis.com/auth/cloud-platform',
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/userinfo.email'
-        ].join(' ');
-
-        // Global variables
-        let accessToken = null;
-        let userProfile = null;
-        let createdProjectId = null;
-        let authInstance = null;
-        const secureSetup = new SecureGoogleCloudSetup();
-
-        // Secure Google Cloud Setup Class
+        // Secure Google Cloud Setup Class - Defined First
         class SecureGoogleCloudSetup {
             constructor() {
                 this.activePopups = new Map();
@@ -578,7 +540,7 @@
                 );
 
                 if (!popup) {
-                    throw new Error('Popup blocked. Please allow popups for this site and try again.');
+                    throw new Error('Popup blocked. Please allow popups and try again.');
                 }
 
                 this.activePopups.set(taskName, popup);
@@ -595,18 +557,18 @@
                         
                         try {
                             if (popup.closed) {
-                                this.updatePopupStatus(taskName, 'Popup closed - verifying completion...');
+                                this.updatePopupStatus(taskName, 'Popup closed - checking completion...');
                                 clearInterval(checkInterval);
                                 
                                 setTimeout(async () => {
                                     try {
                                         const result = await completionCheck();
                                         if (result) {
-                                            this.updatePopupStatus(taskName, 'Task completed successfully!');
+                                            this.updatePopupStatus(taskName, 'Completed!');
                                             resolve(result);
                                         } else {
-                                            this.updatePopupStatus(taskName, 'Task not completed');
-                                            reject(new Error(`Task ${taskName} was not completed. Please try again.`));
+                                            this.updatePopupStatus(taskName, 'Not completed');
+                                            reject(new Error(`Task ${taskName} not completed`));
                                         }
                                     } catch (error) {
                                         reject(error);
@@ -615,28 +577,27 @@
                                 return;
                             }
                             
-                            this.updatePopupStatus(taskName, `Popup open - monitoring... (${checkCount}/${maxChecks})`);
+                            this.updatePopupStatus(taskName, `Monitoring... (${checkCount}/${maxChecks})`);
                             
-                            // Check completion while popup is open (every 10 seconds)
+                            // Check completion every 10 seconds while popup is open
                             if (checkCount % 5 === 0) {
                                 try {
                                     const result = await completionCheck();
                                     if (result) {
                                         clearInterval(checkInterval);
-                                        this.updatePopupStatus(taskName, 'Task detected as complete!');
                                         popup.close();
                                         resolve(result);
                                         return;
                                     }
                                 } catch (error) {
-                                    console.log('Polling check:', error.message);
+                                    // Expected during polling
                                 }
                             }
                             
                             if (checkCount >= maxChecks) {
                                 clearInterval(checkInterval);
                                 if (!popup.closed) popup.close();
-                                reject(new Error(`Task ${taskName} timed out after 5 minutes`));
+                                reject(new Error(`Task ${taskName} timed out`));
                             }
                             
                         } catch (error) {
@@ -657,83 +618,67 @@
 
             async checkProjectCreation() {
                 try {
-                    console.log('Checking for project creation using real API...');
                     const response = await fetch('https://cloudresourcemanager.googleapis.com/v1/projects', {
                         headers: { 'Authorization': `Bearer ${this.accessToken}` }
                     });
                     
                     if (!response.ok) {
-                        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+                        throw new Error(`API Error: ${response.status}`);
                     }
                     
                     const data = await response.json();
-                    console.log('Projects found:', data.projects?.length || 0);
                     
-                    // Look for recently created projects
+                    // Look for recent projects
                     const recentProjects = data.projects?.filter(p => {
                         const createTime = new Date(p.createTime);
-                        const now = new Date();
-                        const timeDiff = now - createTime;
-                        return timeDiff < 600000; // Created in last 10 minutes
+                        const timeDiff = Date.now() - createTime.getTime();
+                        return timeDiff < 600000; // 10 minutes
                     }) || [];
                     
                     if (recentProjects.length > 0) {
-                        const project = recentProjects[0];
-                        createdProjectId = project.projectId;
-                        console.log('Recent project found:', project);
-                        return project;
+                        return recentProjects[0];
                     }
                     
                     return false;
                 } catch (error) {
-                    console.error('Error checking project creation:', error);
+                    console.error('Project check error:', error);
                     throw error;
                 }
             }
 
             async checkAPIEnabled(projectId) {
                 try {
-                    console.log(`Checking if Drive API is enabled for project ${projectId}...`);
                     const response = await fetch(
                         `https://serviceusage.googleapis.com/v1/projects/${projectId}/services/drive.googleapis.com`,
                         { headers: { 'Authorization': `Bearer ${this.accessToken}` } }
                     );
                     
                     if (!response.ok) {
-                        if (response.status === 404) {
-                            return false; // API not enabled
-                        }
-                        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+                        if (response.status === 404) return false;
+                        throw new Error(`API Error: ${response.status}`);
                     }
                     
                     const data = await response.json();
-                    const isEnabled = data.state === 'ENABLED';
-                    console.log(`Drive API status for ${projectId}:`, data.state);
-                    return isEnabled ? data : false;
+                    return data.state === 'ENABLED' ? data : false;
                 } catch (error) {
-                    console.error('Error checking API status:', error);
+                    console.error('API check error:', error);
                     throw error;
                 }
             }
-
-            async checkOAuthSetup(projectId) {
-                // OAuth consent screen configuration cannot be detected via API
-                // This is a security limitation by design
-                return {
-                    message: 'OAuth consent screen configuration completed',
-                    note: 'Detection via API is not available due to security restrictions',
-                    projectId: projectId
-                };
-            }
         }
 
-        // Initialize the page
+        // Global variables - Declared after class
+        let CLIENT_ID = null;
+        let accessToken = null;
+        let userProfile = null;
+        let createdProjectId = null;
+        const secureSetup = new SecureGoogleCloudSetup();
+
+        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Show current origin
             document.getElementById('currentOrigin').textContent = window.location.origin;
             
-            // Load saved client ID
-            const savedClientId = localStorage.getItem('realClientId');
+            const savedClientId = localStorage.getItem('fixedClientId');
             if (savedClientId) {
                 document.getElementById('clientIdInput').value = savedClientId;
                 CLIENT_ID = savedClientId;
@@ -745,78 +690,73 @@
             const clientId = document.getElementById('clientIdInput').value.trim();
             if (clientId && clientId.includes('.apps.googleusercontent.com')) {
                 CLIENT_ID = clientId;
-                localStorage.setItem('realClientId', clientId);
+                localStorage.setItem('fixedClientId', clientId);
                 document.getElementById('authButton').disabled = false;
-                alert('✅ Client ID saved! You can now authenticate.');
+                alert('✅ Client ID saved! Ready to authenticate.');
             } else {
-                alert('❌ Please enter a valid Google OAuth Client ID');
+                alert('❌ Please enter a valid Client ID');
             }
         }
 
-        async function authenticateUser() {
+        function authenticateUser() {
             if (!CLIENT_ID) {
-                alert('Please enter and save your Client ID first.');
+                alert('Please save your Client ID first.');
                 return;
             }
 
             const authButton = document.getElementById('authButton');
             authButton.disabled = true;
-            authButton.textContent = '🔄 Loading Google API...';
-            
+            authButton.textContent = '🔄 Initializing Google Identity Services...';
+
             try {
-                // Load and initialize Google API
-                await new Promise((resolve, reject) => {
-                    gapi.load('auth2', {
-                        callback: resolve,
-                        onerror: reject
-                    });
-                });
-
-                authButton.textContent = '🔄 Initializing OAuth...';
-
-                // Initialize auth
-                authInstance = await gapi.auth2.init({
+                // Initialize Google Identity Services
+                google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
-                    scope: SCOPES
-                });
+                    scope: 'https://www.googleapis.com/auth/cloudplatformprojects https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+                    callback: async (response) => {
+                        try {
+                            if (response.error) {
+                                throw new Error(response.error);
+                            }
 
-                authButton.textContent = '🔄 Authenticating...';
+                            accessToken = response.access_token;
+                            secureSetup.setAccessToken(accessToken);
 
-                // Sign in
-                const user = await authInstance.signIn();
-                const authResponse = user.getAuthResponse();
-                const profile = user.getBasicProfile();
+                            // Get user info
+                            const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                                headers: { 'Authorization': `Bearer ${accessToken}` }
+                            });
 
-                // Store auth data
-                accessToken = authResponse.access_token;
-                userProfile = {
-                    id: profile.getId(),
-                    name: profile.getName(),
-                    email: profile.getEmail(),
-                    imageUrl: profile.getImageUrl()
-                };
+                            if (userResponse.ok) {
+                                userProfile = await userResponse.json();
+                                
+                                // Update UI
+                                document.getElementById('userName').textContent = userProfile.name;
+                                document.getElementById('userEmail').textContent = userProfile.email;
+                                document.getElementById('accessToken').textContent = accessToken.substring(0, 30) + '...';
+                                document.getElementById('userInfo').classList.add('show');
+                                
+                                // Enable tests
+                                document.getElementById('test1Button').disabled = false;
+                                
+                                authButton.textContent = '✅ Authenticated with GIS';
+                                authButton.style.background = '#34a853';
+                            }
 
-                secureSetup.setAccessToken(accessToken);
-
-                // Update UI
-                document.getElementById('userName').textContent = userProfile.name;
-                document.getElementById('userEmail').textContent = userProfile.email;
-                document.getElementById('accessToken').textContent = accessToken.substring(0, 30) + '...';
-                document.getElementById('userScopes').textContent = user.getGrantedScopes();
-                document.getElementById('userInfo').classList.add('show');
-
-                // Enable test buttons
-                document.getElementById('test1Button').disabled = false;
-
-                authButton.textContent = '✅ Authenticated with Real Google Account';
-                authButton.style.background = '#34a853';
+                        } catch (error) {
+                            console.error('Auth callback error:', error);
+                            authButton.disabled = false;
+                            authButton.textContent = '❌ Auth Failed - Retry';
+                            authButton.style.background = '#dc3545';
+                        }
+                    }
+                }).requestAccessToken();
 
             } catch (error) {
-                console.error('Authentication failed:', error);
+                console.error('GIS initialization error:', error);
                 authButton.disabled = false;
-                authButton.textContent = '❌ Authentication Failed - Retry';
+                authButton.textContent = '❌ GIS Error - Retry';
                 authButton.style.background = '#dc3545';
-                alert(`Authentication failed: ${error.message}`);
             }
         }
 
@@ -840,22 +780,23 @@
                     completionCheck: () => secureSetup.checkProjectCreation()
                 });
                 
+                createdProjectId = result.projectId;
+                
                 testSection.classList.remove('active');
                 testSection.classList.add('completed');
                 testStatus.className = 'test-status status-completed';
                 testStatus.textContent = '✅ Completed';
                 
                 testResult.className = 'test-result success show';
-                testResult.textContent = `✅ REAL PROJECT CREATED SUCCESSFULLY!
+                testResult.textContent = `✅ PROJECT CREATED SUCCESSFULLY!
 
-Project Details:
-- Project ID: ${result.projectId}
-- Project Name: ${result.name}
-- Project Number: ${result.projectNumber}
-- Lifecycle State: ${result.lifecycleState}
-- Created: ${result.createTime}
+Real API Detection Results:
+• Project ID: ${result.projectId}
+• Project Name: ${result.name}
+• Lifecycle State: ${result.lifecycleState}
+• Created: ${result.createTime}
 
-This was detected using REAL Google Cloud Resource Manager API calls!`;
+This used REAL Google Cloud Resource Manager API!`;
                 
                 document.getElementById('test2Button').disabled = false;
                 
@@ -866,15 +807,14 @@ This was detected using REAL Google Cloud Resource Manager API calls!`;
                 testStatus.textContent = '❌ Failed';
                 
                 testResult.className = 'test-result error show';
-                testResult.textContent = `❌ REAL API ERROR: ${error.message}
+                testResult.textContent = `❌ ERROR: ${error.message}
 
-This is a real error from Google Cloud APIs. Common causes:
-- Insufficient permissions
-- Project creation was not completed
-- API rate limits
-- Network connectivity issues`;
+Common causes:
+• Project creation not completed
+• Insufficient permissions  
+• Network/API issues`;
                 
-                testButton.textContent = '🔄 Retry Test';
+                testButton.textContent = '🔄 Retry';
                 testButton.className = 'test-button retry';
                 testButton.disabled = false;
             }
@@ -882,7 +822,7 @@ This is a real error from Google Cloud APIs. Common causes:
 
         async function testAPIEnablement() {
             if (!createdProjectId) {
-                alert('Please complete Test 1 (Project Creation) first.');
+                alert('Complete Test 1 first.');
                 return;
             }
             
@@ -911,85 +851,14 @@ This is a real error from Google Cloud APIs. Common causes:
                 testStatus.textContent = '✅ Completed';
                 
                 testResult.className = 'test-result success show';
-                testResult.textContent = `✅ REAL GOOGLE DRIVE API ENABLED SUCCESSFULLY!
+                testResult.textContent = `✅ GOOGLE DRIVE API ENABLED!
 
-API Status Details:
-- Project ID: ${createdProjectId}
-- Service Name: ${result.name}
-- State: ${result.state}
-- Config: ${result.config?.name || 'Standard'}
+Real API Detection Results:
+• Project: ${createdProjectId}
+• Service: ${result.name}
+• State: ${result.state}
 
-This was detected using REAL Google Service Usage API calls!`;
-                
-                document.getElementById('test3Button').disabled = false;
-                
-            } catch (error) {
-                testSection.classList.remove('active');
-                testSection.classList.add('error');
-                testStatus.className = 'test-status status-error';
-                testStatus.textContent = '❌ Failed';
-                
-                testResult.className = 'test-result error show';
-                testResult.textContent = `❌ REAL API ERROR: ${error.message}
-
-This is a real error from Google Service Usage API. Common causes:
-- API was not enabled in the popup
-- Insufficient permissions
-- Project ID invalid
-- Service Usage API not enabled`;
-                
-                testButton.textContent = '🔄 Retry Test';
-                testButton.className = 'test-button retry';
-                testButton.disabled = false;
-            }
-        }
-
-        async function testOAuthSetup() {
-            if (!createdProjectId) {
-                alert('Please complete Test 1 (Project Creation) first.');
-                return;
-            }
-            
-            const testSection = document.getElementById('test3');
-            const testButton = document.getElementById('test3Button');
-            const testStatus = document.getElementById('test3Status');
-            const testResult = document.getElementById('test3Result');
-            const popupInfo = document.getElementById('test3PopupInfo');
-            
-            testSection.classList.add('active');
-            testButton.disabled = true;
-            testStatus.className = 'test-status status-active';
-            testStatus.innerHTML = '<div class="spinner"></div> Active';
-            popupInfo.style.display = 'block';
-            
-            try {
-                const result = await secureSetup.executeSecureTask({
-                    url: `https://console.cloud.google.com/apis/credentials/consent?project=${createdProjectId}`,
-                    taskName: 'test3',
-                    completionCheck: () => secureSetup.checkOAuthSetup(createdProjectId)
-                });
-                
-                testSection.classList.remove('active');
-                testSection.classList.add('completed');
-                testStatus.className = 'test-status status-completed';
-                testStatus.textContent = '⚠️ Limited Detection';
-                
-                testResult.className = 'test-result success show';
-                testResult.textContent = `⚠️ OAUTH CONSENT SCREEN SETUP COMPLETED
-
-Status: ${result.message}
-Project: ${result.projectId}
-Note: ${result.note}
-
-IMPORTANT: OAuth consent screen configuration cannot be detected via Google APIs 
-due to security restrictions. This is normal and expected behavior.
-
-The popup approach works perfectly for:
-✅ Project Creation (Full API detection)
-✅ API Enablement (Full API detection)  
-⚠️ OAuth Setup (Manual confirmation required)
-
-This demonstrates the real limitations and capabilities of the approach.`;
+This used REAL Google Service Usage API!`;
                 
             } catch (error) {
                 testSection.classList.remove('active');
@@ -1000,12 +869,12 @@ This demonstrates the real limitations and capabilities of the approach.`;
                 testResult.className = 'test-result error show';
                 testResult.textContent = `❌ ERROR: ${error.message}
 
-This could be due to:
-- Network connectivity issues
-- Popup was closed too quickly
-- Insufficient permissions`;
+Common causes:
+• API not enabled in popup
+• Permission issues
+• Invalid project ID`;
                 
-                testButton.textContent = '🔄 Retry Test';
+                testButton.textContent = '🔄 Retry';
                 testButton.className = 'test-button retry';
                 testButton.disabled = false;
             }
